@@ -54,7 +54,7 @@ def main():
         desired_aruco_dictionary))
     this_aruco_dictionary = cv2.aruco.Dictionary_get(ARUCO_DICT[desired_aruco_dictionary])
         
-    frame = cv2.imread('images/new_markers/qr_codes/frame0025.jpg')
+    frame = cv2.imread('../images/new_markers/qr_codes/frame0025.jpg')
 
     # Detect ArUco markers in the video frame
     # for _, dictionary in enumerate(ARUCO_DICT):
@@ -131,9 +131,11 @@ def main():
     centre_circle_y = int(np.round(np.mean(centre_circle_y)))
     cv2.circle(frame, (centre_circle_x, centre_circle_y), radius, color=(255, 0, 0), thickness=2)
 
-    cv2.imwrite('images/detected.jpg', frame)
+    cv2.imwrite('../images/detected/detected.jpg', frame)
     # Display the resulting frame
     cv2.imshow('frame', frame)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
