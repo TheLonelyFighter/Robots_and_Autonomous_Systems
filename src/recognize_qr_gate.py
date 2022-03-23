@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-  
+
 '''
 Welcome to the ArUco Marker Detector!
   
@@ -10,6 +10,7 @@ This program:
 from __future__ import print_function # Python 2/3 compatibility
 import cv2 # Import the OpenCV library
 import numpy as np # Import Numpy library
+import math
  
 # Project: ArUco Marker Detector
 # Date created: 12/18/2021
@@ -75,6 +76,8 @@ def main():
         ids = ids.flatten()
 
     # Loop over the detected ArUco corners
+    centre_circle_x = []
+    centre_circle_y = []
     for (marker_corner, marker_id) in zip(corners, ids):
     
         # Extract the marker corners
@@ -109,29 +112,36 @@ def main():
         image_size = frame.shape
         size_x = np.abs(top_right[0] - top_left[0])
         size_y = np.abs(top_left[1] - bottom_left[1])
-        radius = 5 * size_x
 
-        centre_circle_x = []
-        centre_circle_y = []
 
-        if marker_id == 1:  # bottom marker
-            centre_circle_x.append(center_x)
-            centre_circle_y.append(center_y + radius)
-        elif marker_id == 2:  # top marker
-            centre_circle_x.append(center_x)
-            centre_circle_y.append(center_y - radius)
-        elif marker_id == 3:  # right
-            centre_circle_x.append(center_x + radius)
-            centre_circle_y.append(center_y)
-        elif marker_id == 4:  # left
-            centre_circle_x.append(center_x - radius)
-            centre_circle_y.append(center_y)
+        centre_circle_x.append(center_x)
+        centre_circle_y.append(center_y)
+
+        # if marker_id == 1:  # bottom marker
+        #     centre_circle_x.append(center_x)
+        #     centre_circle_y.append(center_y + radius)
+        # elif marker_id == 2:  # top marker
+        #     centre_circle_x.append(center_x)
+        #     centre_circle_y.append(center_y - radius)
+        # elif marker_id == 3:  # right
+        #     centre_circle_x.append(center_x + radius)
+        #     centre_circle_y.append(center_y)
+        # elif marker_id == 4:  # left
+        #     centre_circle_x.append(center_x - radius)
+        #     centre_circle_y.append(center_y)
 
     centre_circle_x = int(np.round(np.mean(centre_circle_x)))
     centre_circle_y = int(np.round(np.mean(centre_circle_y)))
+    #Radius of the end circle is calculated by getting the distance between the center of the circle and the center of the last detected marker
+    #Because the center of the last detected marker is not on the edge of the inner circle
+    #We can extract half of the distance of one of the sides of the marker to get a more accurate result
+    radius = int(np.round(math.sqrt(((center_x-centre_circle_x)**2)+((center_y-centre_circle_y)**2))))
+    half_size_edge = int(np.round(math.sqrt(((top_right[0] - top_left[0])**2)+((top_right[1]-top_left[1]))**2))/ 2)
+    radius = radius - half_size_edge
+    print(radius)
     cv2.circle(frame, (centre_circle_x, centre_circle_y), radius, color=(255, 0, 0), thickness=2)
 
-    cv2.imwrite('../images/detected/detected.jpg', frame)
+    cv2.imwrite('../images/detected/detected3.jpg', frame)
     # Display the resulting frame
     cv2.imshow('frame', frame)
     cv2.waitKey(0)
