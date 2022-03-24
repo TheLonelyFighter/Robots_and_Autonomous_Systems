@@ -39,7 +39,28 @@ ARUCO_DICT = {
     "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
     "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL
     }
-  
+
+def calculate_angle_bottom(top_left, bottom_left):
+    """
+    Calculate the angle of the square between a horizontal line and the bottom.
+    Also calculate the size of the bottom.
+    """
+    bottom = bottom_left - top_left
+    horizontal_ref_point = [bottom_left[0], top_left[1]]  # point of horizontal reference
+    horizontal_line = horizontal_ref_point - top_left
+
+    # define x and y values of the two vectors
+    x1, y1 = bottom
+    x2, y2 = horizontal_line
+
+    # calculate length of the bottom
+    bottom_length = math.sqrt(x2 ** 2 + y1 ** 2)
+
+    # calculate the angle
+    angle_rad = math.acos(x2 / bottom_length)
+    return angle_rad, bottom_length
+
+
 def main():
     """
     Main method of the program.
@@ -59,17 +80,9 @@ def main():
     marker_ids = [1,2,3,4]
 
     # Detect ArUco markers in the video frame
-    # for _, dictionary in enumerate(ARUCO_DICT):
-    #     print(dictionary)
-    #     this_aruco_dictionary = cv2.aruco.Dictionary_get(ARUCO_DICT[dictionary])
     this_aruco_parameters = cv2.aruco.DetectorParameters_create()
     (corners, ids, rejected) = cv2.aruco.detectMarkers(
         frame, this_aruco_dictionary, parameters=this_aruco_parameters)
-        # if len(corners) == 0:
-        #     pass
-        # else:
-        #     print(ids)
-        #     break
 
     # Check that at least one ArUco marker was detected
     if len(corners) > 0:
@@ -79,18 +92,20 @@ def main():
     # Loop over the detected ArUco corners
     centre_circle_x = []
     centre_circle_y = []
+    avg_radius = []
+
     for (marker_corner, marker_id) in zip(corners, ids):
-    
+
         # Extract the marker corners
         if(marker_id in marker_ids):
             corners = marker_corner.reshape((4, 2))
             (top_left, top_right, bottom_right, bottom_left) = corners
             
             # Convert the (x,y) coordinate pairs to integers
-            top_right = (int(top_right[0]), int(top_right[1]))
-            bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
-            bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
-            top_left = (int(top_left[0]), int(top_left[1]))
+            top_right = np.array((int(top_right[0]), int(top_right[1])))
+            bottom_right = np.array((int(bottom_right[0]), int(bottom_right[1])))
+            bottom_left = np.array((int(bottom_left[0]), int(bottom_left[1])))
+            top_left = np.array((int(top_left[0]), int(top_left[1])))
 
             # Draw the bounding box of the ArUco detection
             cv2.line(frame, top_left, top_right, (0, 255, 0), 2)
@@ -110,38 +125,35 @@ def main():
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (0, 255, 0), 2)
 
-            # draw a circle
-            image_size = frame.shape
-            size_x = np.abs(top_right[0] - top_left[0])
-            size_y = np.abs(top_left[1] - bottom_left[1])
+            # calculate the angle and the radius
+            angle, bottom_length = calculate_angle_bottom(top_left, bottom_left)
+            radius = 4 * bottom_length
+            avg_radius.append(radius)
 
+            if marker_id == 1:  # bottom marker
+                pass
+            # TODO fix for top and bottom markers
 
-            centre_circle_x.append(center_x)
-            centre_circle_y.append(center_y)
-
-            # if marker_id == 1:  # bottom marker
             #     centre_circle_x.append(center_x)
             #     centre_circle_y.append(center_y + radius)
             # elif marker_id == 2:  # top marker
             #     centre_circle_x.append(center_x)
             #     centre_circle_y.append(center_y - radius)
-            # elif marker_id == 3:  # right
-            #     centre_circle_x.append(center_x + radius)
-            #     centre_circle_y.append(center_y)
-            # elif marker_id == 4:  # left
-            #     centre_circle_x.append(center_x - radius)
-            #     centre_circle_y.append(center_y)
+            elif marker_id == 3:  # right
+                centre_circle_x.append(-math.cos(angle) * radius + center_x)
+                centre_circle_y.append(-math.sin(angle) * radius + center_y)
+            elif marker_id == 4:  # left
+                centre_circle_x.append(math.cos(angle) * radius + center_x)
+                centre_circle_y.append(math.sin(angle) * radius + center_y)
 
+    # calculate the mean radius and centre of the circles
     centre_circle_x = int(np.round(np.mean(centre_circle_x)))
     centre_circle_y = int(np.round(np.mean(centre_circle_y)))
-    #Radius of the end circle is calculated by getting the distance between the center of the circle and the center of the last detected marker
-    #Because the center of the last detected marker is not on the edge of the inner circle
-    #We can extract half of the distance of one of the sides of the marker to get a more accurate result
-    radius = int(np.round(math.sqrt(((center_x-centre_circle_x)**2)+((center_y-centre_circle_y)**2))))
-    half_size_edge = int(np.round(math.sqrt(((top_right[0] - top_left[0])**2)+((top_right[1]-top_left[1]))**2))/ 2)
-    radius = radius - half_size_edge
-    print(radius)
-    cv2.circle(frame, (centre_circle_x, centre_circle_y), radius, color=(255, 0, 0), thickness=2)
+    avg_radius = int(np.round(np.mean(avg_radius)))
+
+    # draw the circle and the middle point
+    cv2.circle(frame, (centre_circle_x, centre_circle_y), avg_radius, color=(255, 0, 0), thickness=2)
+    cv2.circle(frame, (centre_circle_x, centre_circle_y), 4, color=(0, 0, 255), thickness=-1)
 
     cv2.imwrite('../images/detected/detected3.jpg', frame)
     # Display the resulting frame
