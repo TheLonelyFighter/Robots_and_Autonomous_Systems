@@ -40,25 +40,26 @@ ARUCO_DICT = {
     "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL
     }
 
-def calculate_angle_bottom(top_left, bottom_left):
+def calculate_angle(reference_point, inclined_point):
     """
-    Calculate the angle of the square between a horizontal line and the bottom.
-    Also calculate the size of the bottom.
+    Calculate the angle of the square between a reference line and the side.
+    Also calculate the size of one side.
     """
-    bottom = bottom_left - top_left
-    horizontal_ref_point = [bottom_left[0], top_left[1]]  # point of horizontal reference
-    horizontal_line = horizontal_ref_point - top_left
+    side = inclined_point - reference_point
+
+    ref_point = [inclined_point[0], reference_point[1]]  # point of reference
+    reference_line = ref_point - reference_point
 
     # define x and y values of the two vectors
-    x1, y1 = bottom
-    x2, y2 = horizontal_line
+    x1, y1 = side
+    x2, y2 = reference_line
 
-    # calculate length of the bottom
-    bottom_length = math.sqrt(x2 ** 2 + y1 ** 2)
+    # calculate length of the side
+    side_length = math.sqrt(x2 ** 2 + y1 ** 2)
 
     # calculate the angle
-    angle_rad = math.acos(x2 / bottom_length)
-    return angle_rad, bottom_length
+    angle_rad = math.acos(x2 / side_length)
+    return angle_rad, side_length
 
 
 def main():
@@ -126,25 +127,23 @@ def main():
                 0.5, (0, 255, 0), 2)
 
             # calculate the angle and the radius
-            angle, bottom_length = calculate_angle_bottom(top_left, bottom_left)
-            radius = 4 * bottom_length
-            avg_radius.append(radius)
+            angle, side_length = calculate_angle(top_left, bottom_left)
+            radius_gap = 4 * side_length  # radius of the gap to fly through
+            radius_circle = radius_gap + 0.5 * side_length  # radius from centre to centre of the codes
+            avg_radius.append(radius_gap)
 
             if marker_id == 1:  # bottom marker
-                pass
-            # TODO fix for top and bottom markers
-
-            #     centre_circle_x.append(center_x)
-            #     centre_circle_y.append(center_y + radius)
-            # elif marker_id == 2:  # top marker
-            #     centre_circle_x.append(center_x)
-            #     centre_circle_y.append(center_y - radius)
+                centre_circle_x.append(-math.sin(angle) * radius_circle + center_x)
+                centre_circle_y.append(-math.cos(angle) * radius_circle + center_y)
+            elif marker_id == 2:  # top marker
+                centre_circle_x.append(math.sin(angle) * radius_circle + center_x)
+                centre_circle_y.append(math.cos(angle) * radius_circle + center_y)
             elif marker_id == 3:  # right
-                centre_circle_x.append(-math.cos(angle) * radius + center_x)
-                centre_circle_y.append(-math.sin(angle) * radius + center_y)
+                centre_circle_x.append(-math.cos(angle) * radius_circle + center_x)
+                centre_circle_y.append(math.sin(angle) * radius_circle + center_y)
             elif marker_id == 4:  # left
-                centre_circle_x.append(math.cos(angle) * radius + center_x)
-                centre_circle_y.append(math.sin(angle) * radius + center_y)
+                centre_circle_x.append(math.cos(angle) * radius_circle + center_x)
+                centre_circle_y.append(-math.sin(angle) * radius_circle + center_y)
 
     # calculate the mean radius and centre of the circles
     centre_circle_x = int(np.round(np.mean(centre_circle_x)))
