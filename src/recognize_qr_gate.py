@@ -62,6 +62,32 @@ def calculate_angle(reference_point, inclined_point):
     return angle_rad, side_length
 
 
+def calculate_centre_coordinates(angle, radius, centre_qr, marker_id):
+    """
+    Calculates the center coordinates of a circle based on the centre coordinates and the angle of the
+    qr code, as well as the marker_id and the circle radius.
+    """
+    center_x, center_y = centre_qr
+    if marker_id == 1:  # bottom marker
+        centre_circle_x = -math.sin(angle) * radius + center_x
+        centre_circle_y = -math.cos(angle) * radius + center_y
+    elif marker_id == 2:  # top marker
+        centre_circle_x = math.sin(angle) * radius + center_x
+        centre_circle_y = math.cos(angle) * radius + center_y
+    elif marker_id == 3:  # right
+        centre_circle_x = -math.cos(angle) * radius + center_x
+        centre_circle_y = math.sin(angle) * radius + center_y
+    elif marker_id == 4:  # left
+        centre_circle_x = math.cos(angle) * radius + center_x
+        centre_circle_y = -math.sin(angle) * radius + center_y
+    else:
+        print('Another marker has been found with ID %i' % marker_id)
+        centre_circle_x = np.nan
+        centre_circle_y = np.nan
+
+    return [centre_circle_x, centre_circle_y]
+
+
 def main():
     """
     Main method of the program.
@@ -78,7 +104,6 @@ def main():
     this_aruco_dictionary = cv2.aruco.Dictionary_get(ARUCO_DICT[desired_aruco_dictionary])
         
     frame = cv2.imread('../images/new_markers/qr_codes/frame0025.jpg')
-    marker_ids = [1,2,3,4]
 
     # Detect ArUco markers in the video frame
     this_aruco_parameters = cv2.aruco.DetectorParameters_create()
@@ -91,68 +116,55 @@ def main():
         ids = ids.flatten()
 
     # Loop over the detected ArUco corners
-    centre_circle_x = []
-    centre_circle_y = []
+    centre_circle = []
     avg_radius = []
 
     for (marker_corner, marker_id) in zip(corners, ids):
-
         # Extract the marker corners
-        if(marker_id in marker_ids):
-            corners = marker_corner.reshape((4, 2))
-            (top_left, top_right, bottom_right, bottom_left) = corners
-            
-            # Convert the (x,y) coordinate pairs to integers
-            top_right = np.array((int(top_right[0]), int(top_right[1])))
-            bottom_right = np.array((int(bottom_right[0]), int(bottom_right[1])))
-            bottom_left = np.array((int(bottom_left[0]), int(bottom_left[1])))
-            top_left = np.array((int(top_left[0]), int(top_left[1])))
+        corners = marker_corner.reshape((4, 2))
+        (top_left, top_right, bottom_right, bottom_left) = corners
 
-            # Draw the bounding box of the ArUco detection
-            cv2.line(frame, top_left, top_right, (0, 255, 0), 2)
-            cv2.line(frame, top_right, bottom_right, (0, 255, 0), 2)
-            cv2.line(frame, bottom_right, bottom_left, (0, 255, 0), 2)
-            cv2.line(frame, bottom_left, top_left, (0, 255, 0), 2)
-            
-            # Calculate and draw the center of the ArUco marker
-            center_x = int((top_left[0] + bottom_right[0]) / 2.0)
-            center_y = int((top_left[1] + bottom_right[1]) / 2.0)
-            cv2.circle(frame, (center_x, center_y), 4, (0, 0, 255), -1)
-            
-            # Draw the ArUco marker ID on the video frame
-            # The ID is always located at the top_left of the ArUco marker
-            cv2.putText(frame, str(marker_id), 
-                (top_left[0], top_left[1] - 15),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (0, 255, 0), 2)
+        # Convert the (x,y) coordinate pairs to integers
+        top_right = np.array((int(top_right[0]), int(top_right[1])))
+        bottom_right = np.array((int(bottom_right[0]), int(bottom_right[1])))
+        bottom_left = np.array((int(bottom_left[0]), int(bottom_left[1])))
+        top_left = np.array((int(top_left[0]), int(top_left[1])))
 
-            # calculate the angle and the radius
-            angle, side_length = calculate_angle(top_left, bottom_left)
-            radius_gap = 4 * side_length  # radius of the gap to fly through
-            radius_circle = radius_gap + 0.5 * side_length  # radius from centre to centre of the codes
-            avg_radius.append(radius_gap)
+        # Draw the bounding box of the ArUco detection
+        cv2.line(frame, top_left, top_right, (0, 255, 0), 2)
+        cv2.line(frame, top_right, bottom_right, (0, 255, 0), 2)
+        cv2.line(frame, bottom_right, bottom_left, (0, 255, 0), 2)
+        cv2.line(frame, bottom_left, top_left, (0, 255, 0), 2)
 
-            if marker_id == 1:  # bottom marker
-                centre_circle_x.append(-math.sin(angle) * radius_circle + center_x)
-                centre_circle_y.append(-math.cos(angle) * radius_circle + center_y)
-            elif marker_id == 2:  # top marker
-                centre_circle_x.append(math.sin(angle) * radius_circle + center_x)
-                centre_circle_y.append(math.cos(angle) * radius_circle + center_y)
-            elif marker_id == 3:  # right
-                centre_circle_x.append(-math.cos(angle) * radius_circle + center_x)
-                centre_circle_y.append(math.sin(angle) * radius_circle + center_y)
-            elif marker_id == 4:  # left
-                centre_circle_x.append(math.cos(angle) * radius_circle + center_x)
-                centre_circle_y.append(-math.sin(angle) * radius_circle + center_y)
+        # Calculate and draw the center of the ArUco marker
+        center_x = int((top_left[0] + bottom_right[0]) / 2.0)
+        center_y = int((top_left[1] + bottom_right[1]) / 2.0)
+        cv2.circle(frame, (center_x, center_y), 4, (0, 0, 255), -1)
+
+        # Draw the ArUco marker ID on the video frame
+        # The ID is always located at the top_left of the ArUco marker
+        cv2.putText(frame, str(marker_id),
+                    (top_left[0], top_left[1] - 15),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, (0, 255, 0), 2)
+
+        # calculate the angle and the radius
+        angle, side_length = calculate_angle(top_left, bottom_left)
+        radius_gap = 4 * side_length  # radius of the gap to fly through
+        radius_circle = radius_gap + 0.5 * side_length  # radius from centre to centre of the codes
+        avg_radius.append(radius_gap)
+
+        circle_coordinates = calculate_centre_coordinates(angle, radius_circle, (center_x, center_y), marker_id)
+        centre_circle.append(circle_coordinates)
 
     # calculate the mean radius and centre of the circles
-    centre_circle_x = int(np.round(np.mean(centre_circle_x)))
-    centre_circle_y = int(np.round(np.mean(centre_circle_y)))
+    centre_circle = np.array(centre_circle)
+    centre_circle = np.round(np.nanmean(centre_circle, axis=0)).astype(int)
     avg_radius = int(np.round(np.mean(avg_radius)))
 
     # draw the circle and the middle point
-    cv2.circle(frame, (centre_circle_x, centre_circle_y), avg_radius, color=(255, 0, 0), thickness=2)
-    cv2.circle(frame, (centre_circle_x, centre_circle_y), 4, color=(0, 0, 255), thickness=-1)
+    cv2.circle(frame, centre_circle, avg_radius, color=(255, 0, 0), thickness=2)
+    cv2.circle(frame, centre_circle, 4, color=(0, 0, 255), thickness=-1)
 
     cv2.imwrite('../images/detected/detected3.jpg', frame)
     # Display the resulting frame
