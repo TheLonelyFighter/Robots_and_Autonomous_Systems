@@ -88,9 +88,37 @@ def calculate_centre_coordinates(angle, radius, centre_qr, marker_id):
     return [centre_circle_x, centre_circle_y]
 
 
-def main():
+def draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right):
+    """ Draws the boarders and centre of the aruco markers, and writes the marker_id."""
+    # Draw the bounding box of the ArUco detection
+    cv2.line(frame, top_left, top_right, (0, 255, 0), 2)
+    cv2.line(frame, top_right, bottom_right, (0, 255, 0), 2)
+    cv2.line(frame, bottom_right, bottom_left, (0, 255, 0), 2)
+    cv2.line(frame, bottom_left, top_left, (0, 255, 0), 2)
+
+    # Calculate and draw the center of the ArUco marker
+    center_x = int((top_left[0] + bottom_right[0]) / 2.0)
+    center_y = int((top_left[1] + bottom_right[1]) / 2.0)
+    cv2.circle(frame, (center_x, center_y), 4, (0, 0, 255), -1)
+
+    # Draw the ArUco marker ID on the video frame
+    # The ID is always located at the top_left of the ArUco marker
+    cv2.putText(frame, str(marker_id),
+                (top_left[0], top_left[1] - 15),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (0, 255, 0), 2)
+    return frame, center_x, center_y
+
+
+def convert_to_integer_pair(coordinates):
+    """ Converts coordinates to an integer pair."""
+    integer_pair = np.array((int(coordinates[0]), int(coordinates[1])))
+    return integer_pair
+
+
+def calculate_centre_gate(frame):
     """
-    Main method of the program.
+    Detects the aruco markers on a circular gate and calculates the centre of the gate.
     """
     # Check that we have a valid ArUco marker
     if ARUCO_DICT.get(desired_aruco_dictionary, None) is None:
@@ -102,8 +130,6 @@ def main():
     print("[INFO] detecting '{}' markers...".format(
         desired_aruco_dictionary))
     this_aruco_dictionary = cv2.aruco.Dictionary_get(ARUCO_DICT[desired_aruco_dictionary])
-        
-    frame = cv2.imread('../images/new_markers/qr_codes/frame0025.jpg')
 
     # Detect ArUco markers in the video frame
     this_aruco_parameters = cv2.aruco.DetectorParameters_create()
@@ -125,28 +151,12 @@ def main():
         (top_left, top_right, bottom_right, bottom_left) = corners
 
         # Convert the (x,y) coordinate pairs to integers
-        top_right = np.array((int(top_right[0]), int(top_right[1])))
-        bottom_right = np.array((int(bottom_right[0]), int(bottom_right[1])))
-        bottom_left = np.array((int(bottom_left[0]), int(bottom_left[1])))
-        top_left = np.array((int(top_left[0]), int(top_left[1])))
+        top_right = convert_to_integer_pair(top_right)
+        bottom_right = convert_to_integer_pair(bottom_right)
+        bottom_left = convert_to_integer_pair(bottom_left)
+        top_left = convert_to_integer_pair(top_left)
 
-        # Draw the bounding box of the ArUco detection
-        cv2.line(frame, top_left, top_right, (0, 255, 0), 2)
-        cv2.line(frame, top_right, bottom_right, (0, 255, 0), 2)
-        cv2.line(frame, bottom_right, bottom_left, (0, 255, 0), 2)
-        cv2.line(frame, bottom_left, top_left, (0, 255, 0), 2)
-
-        # Calculate and draw the center of the ArUco marker
-        center_x = int((top_left[0] + bottom_right[0]) / 2.0)
-        center_y = int((top_left[1] + bottom_right[1]) / 2.0)
-        cv2.circle(frame, (center_x, center_y), 4, (0, 0, 255), -1)
-
-        # Draw the ArUco marker ID on the video frame
-        # The ID is always located at the top_left of the ArUco marker
-        cv2.putText(frame, str(marker_id),
-                    (top_left[0], top_left[1] - 15),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (0, 255, 0), 2)
+        frame, center_x, center_y = draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right)
 
         # calculate the angle and the radius
         angle, side_length = calculate_angle(top_left, bottom_left)
@@ -162,17 +172,21 @@ def main():
     centre_circle = np.round(np.nanmean(centre_circle, axis=0)).astype(int)
     avg_radius = int(np.round(np.mean(avg_radius)))
 
-    # draw the circle and the middle point
-    cv2.circle(frame, centre_circle, avg_radius, color=(255, 0, 0), thickness=2)
-    cv2.circle(frame, centre_circle, 4, color=(0, 0, 255), thickness=-1)
-
-    cv2.imwrite('../images/detected/detected3.jpg', frame)
-    # Display the resulting frame
-    cv2.imshow('frame', frame)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    return centre_circle, avg_radius
 
 
 if __name__ == '__main__':
     print(__doc__)
-    main()
+
+    image = cv2.imread('../images/new_markers/qr_codes/frame0025.jpg')
+    centre_coordinates, size = calculate_centre_gate(image)
+
+    # draw the circle and the middle point
+    cv2.circle(image, centre_coordinates, size, color=(255, 0, 0), thickness=2)
+    cv2.circle(image, centre_coordinates, 4, color=(0, 0, 255), thickness=-1)
+
+    cv2.imwrite('../images/detected/detected3.jpg', image)
+    # Display the resulting frame
+    cv2.imshow('frame', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
