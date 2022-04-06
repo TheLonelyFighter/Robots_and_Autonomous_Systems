@@ -97,21 +97,21 @@ class CamSubscriber(Node):
         
         #cv2.circle(img, (img.shape[0],img.shape[1]),10,color=(0, 255, 0), thickness=2  )
         cv2.circle(img, (480, 360), 10, color=(0, 255 , 0), thickness=2)
-        cv2.imwrite("real_time_img.png", img)
+        #cv2.imwrite("real_time_img.png", img)
         #self.publisher_proccessed_img.publish(img)
         print(center)
         if (self.TAKE_OFF == False):            
             print("Taking off")
             empty_msg = Empty()
-            #self.publisher_take_off.publish(empty_msg)
-            #time.sleep(2) #wait, otherwise it oublishes more than 4 take off cmds and the tello driver crashes 
+            self.publisher_take_off.publish(empty_msg)
+            time.sleep(2) #wait, otherwise it oublishes more than 4 take off cmds and the tello driver crashes 
             self.TAKE_OFF = True
 
         
             
 
         if (self.GOOD_HEIGHT == False):
-            #self.move(0.0,0.0,40.0, 5 )
+            self.move(0.0,0.0,40.0, 7 )
             self.GOOD_HEIGHT = True
             self.CENTERED = True
 
@@ -122,39 +122,53 @@ class CamSubscriber(Node):
             upper_bound = self.height / 2 - 200
             lower_bound = self.height / 2 - 100
 
+            left_bound = self.length / 2 - 100
+            right_bound = self.length / 2 + 100
+
+            print(center)
+
+
             if self.NO_GATE_DETECTED == True:
                 print("No gate detected")
-                self.move(0.0,0.0,0.0, 0.1)
+                self.move(0.0,0.0,0.0, 0.0)
 
             elif center[1] < upper_bound:
                 print('UP')
-                self.move(0.0,0.0,10.0, 0.1)
+                self.move(0.0,0.0,20.0, 0.0)
                 pass
             elif center[1] > lower_bound:
                 print("DOWN")
-                self.move(0.0,0.0,-10.0, 0.1)
+                self.move(0.0,0.0,-20.0, 0.0)
                 pass
             else:
-                print("In center")
-                self.move(0.0,40.0,0.0, 4)
-                self.PASSED = True
-                self.CENTERED = False
-                pass
-        else:
-            
+                print("Vertically alligned")
 
-            if (self.PASSED == True):
+                if center[0] < left_bound: 
+                    print ("MOVING LEFT")
+                    self.move(-10.0,0.0,0.0, 0.0)
+
+                elif center[0] > right_bound: 
+                    print ("MOVING RIGHT")
+                    self.move(10.0,0.0,0.0, 0.0)
+                else:
+                    print("CENTERED, MOVING FWD")
+                    self.move(0.0,30.0,0.0, 6)
+                    self.PASSED = True
+                    self.CENTERED = False
+                    pass    
+                
+
+        if (self.PASSED == True):
                 self.move(0.0,0.0,0.0, 0.01)
                 empty_msg = Empty()
-                self.publisher_land.publish(empty_msg)
-                self.LANDED = True
+                #self.publisher_land.publish(empty_msg)
+                #time.sleep(2)
+                self.CENTERED = True
+                
                
+
+
         
-        if (self.LANDED):
-            something = 1
-
-
-        #self.move(0.0,0.0,0.0, 0.01 )
 
         
 
@@ -167,8 +181,11 @@ class CamSubscriber(Node):
         img_hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         #lower and upper range for masking
-        lower_red = np.array([0,50,50])
-        upper_red = np.array([10,255,255])
+        # lower_red = np.array([0,50,50]) #this is for RED
+        # upper_red = np.array([10,255,255])
+
+        lower_red = np.array([35,45,100])
+        upper_red = np.array([65,155,255])
 
         #generate the mask
         mask = cv2.inRange(img_hsv, lower_red, upper_red)
@@ -226,7 +243,8 @@ class CamSubscriber(Node):
             for i in range(len(cnts)):
                 area = cv2.contourArea(cnts[i])
                 areas[i] = area
-            #ectract only 4 contours with max area
+                
+            #extract only 4 contours with max area
             sort_areas = sorted(areas.items(), key=lambda x: x[1], reverse=True)[:4]
 
             #get keys for maximum area contours
@@ -238,7 +256,7 @@ class CamSubscriber(Node):
             min_x,min_y = 2000,20000
             max_x, max_y = 0 , 0
 
-            #itterate through each contour and find min and max values
+            #iterate through each contour and find min and max values
             for key in keys:
                 (x,y,w,h) = cv2.boundingRect(cnts[key])
                 min_x, max_x = min(x, min_x), max(x+w, max_x)
@@ -249,8 +267,9 @@ class CamSubscriber(Node):
                 rect = cv2.rectangle(img_result, (min_x, min_y), (max_x, max_y), (255, 0, 0), 2)
                 center = ((min_x + max_x) / 2, (min_y + max_y) / 2)
 
-
-        cv2.imwrite("result.png", img_result)
+        # cv2.circle(img_result, (480,360),20,color=(0, 255, 0), thickness=2  ) # plot image center
+        # cv2.circle(img_result, (int(center[0]), int(center[1])),10,color=(0, 0, 255), thickness=2  ) # plot gate center
+        cv2.imwrite("square_mask.png", img_result)
         return center
         
         
