@@ -119,14 +119,7 @@ class CamSubscriber(Node):
             center = None
             size = 0
 
-        # if size != None:
-        #     cv2.circle(img, center, 20, color=(255, 0, 0), thickness=2)
-        #     cv2.imwrite("real_time_img.png",img)
-        #     self.ROUND_GATE_DETECTED = True
-        #     self.NO_GATE_DETECTED = False
-        # elif size == None:
-        #     center, size  = self.process_image(img)  # detect colored gates
-        #     self.ROUND_GATE_DETECTED = False
+    
         
         #cv2.circle(img, (img.shape[0],img.shape[1]),10,color=(0, 255, 0), thickness=2  )
         cv2.circle(img, (480, 360), 10, color=(0, 255 , 0), thickness=2)  # centre of the image
@@ -135,8 +128,8 @@ class CamSubscriber(Node):
         print(center)
         if (self.TAKE_OFF == False):            
             print("Taking off")
-            #empty_msg = Empty()
-            #self.publisher_take_off.publish(empty_msg)
+            empty_msg = Empty()
+            self.publisher_take_off.publish(empty_msg)
             time.sleep(2) #wait, otherwise it oublishes more than 4 take off cmds and the tello driver crashes 
             self.TAKE_OFF = True
 
@@ -159,7 +152,7 @@ class CamSubscriber(Node):
 
             if self.NO_GATE_DETECTED == True:
                 print("No gate detected")
-                self.move(0.0,0.0,0.0, 0.0)
+                self.spin(20.0, 0.5)
                 # TODO start looking around
 
             elif center[1] < upper_bound:
@@ -316,7 +309,7 @@ class CamSubscriber(Node):
         print("moving with speed x,y,z", speed_x,speed_y,speed_z)    
         time.sleep(seconds)    
         
-    def spin(self, speed):
+    def spin(self, speed, seconds = 0):
         msg = Twist()
         msg.linear.x = 0.0
         msg.linear.y = 0.0
@@ -327,6 +320,7 @@ class CamSubscriber(Node):
         msg.angular.z = speed
 
         self.publisher_twist.publish(msg)
+        time.sleep(seconds)
         print("spinning")        
 
 
