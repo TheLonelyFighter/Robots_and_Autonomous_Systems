@@ -55,7 +55,22 @@ class CamSubscriber(Node):
         if (self.cnt % 1 == 0):
             self.move_control(cv2_img)
 
+    def cv2_to_imgmsg(self, cv2_img, encoding = "passthrough"):
+        '''
+        Converts a OpenCV image to a ROS2 Image message
+        '''
 
+        #Get the dimensions of the Image message
+        img_msg = Image()
+        img_msg.height = cv2_img.shape[0]
+        img_msg.width = cv2_img.shape[1]
+        img_msg.encoding = encoding
+
+        if cv2_img.dtype.byteorder == '>':
+            img_msg.is_bigendian = True
+        img_msg.data = cv2_img.tostring()
+        img_msg.step = len(img_msg.data) // img_msg.height
+        return img_msg
 
 
     def imgmsg_to_cv2(self, img_msg):
@@ -88,6 +103,9 @@ class CamSubscriber(Node):
 
         center_mask, size_mask  = self.process_image(img)
 
+        imgMsg = self.cv2_to_imgmsg(img, "bgr8")
+        self.publisher_proccessed_img.publish(imgMsg)
+
         if size_qr > size_mask:
             center, size = center_qr, size_qr
             self.NO_GATE_DETECTED = False
@@ -117,8 +135,8 @@ class CamSubscriber(Node):
         print(center)
         if (self.TAKE_OFF == False):            
             print("Taking off")
-            empty_msg = Empty()
-            self.publisher_take_off.publish(empty_msg)
+            #empty_msg = Empty()
+            #self.publisher_take_off.publish(empty_msg)
             time.sleep(2) #wait, otherwise it oublishes more than 4 take off cmds and the tello driver crashes 
             self.TAKE_OFF = True
 
@@ -273,7 +291,10 @@ class CamSubscriber(Node):
 
         # cv2.circle(img_result, (480,360),20,color=(0, 255, 0), thickness=2  ) # plot image center
         # cv2.circle(img_result, (int(center[0]), int(center[1])),10,color=(0, 0, 255), thickness=2  ) # plot gate center
-        cv2.imwrite("square_mask.png", img_result)
+        #cv2.imwrite("square_mask.png", img_result)
+        # imgMsg = self.cv2_to_imgmsg(img_result, "bgr8")
+        # self.publisher_proccessed_img.publish(imgMsg)
+
         print(size)
         return center, size
         
