@@ -84,19 +84,17 @@ class CamSubscriber(Node):
     def move_control(self,img):
 
       
-        center, radius = calculate_centre_gate(img)
-        if radius == None:
-            center  = self.process_image(img)
-            self.ROUND_GATE_DETECTED = False
-        
-        if radius != None:
+        center, size = calculate_centre_gate(img)  # detect qr code
+
+        if size != None:
             cv2.circle(img, center, 20, color=(255, 0, 0), thickness=2)
             self.ROUND_GATE_DETECTED = True
-
-    
+        elif size == None:
+            center, size  = self.process_image(img)  # detect colored gates
+            self.ROUND_GATE_DETECTED = False
         
         #cv2.circle(img, (img.shape[0],img.shape[1]),10,color=(0, 255, 0), thickness=2  )
-        cv2.circle(img, (480, 360), 10, color=(0, 255 , 0), thickness=2)
+        cv2.circle(img, (480, 360), 10, color=(0, 255 , 0), thickness=2)  # centre of the image
         #cv2.imwrite("real_time_img.png", img)
         #self.publisher_proccessed_img.publish(img)
         print(center)
@@ -107,56 +105,48 @@ class CamSubscriber(Node):
             time.sleep(2) #wait, otherwise it oublishes more than 4 take off cmds and the tello driver crashes 
             self.TAKE_OFF = True
 
-        
-            
-
-        if (self.GOOD_HEIGHT == False):
+        if (self.GOOD_HEIGHT == False):  # move up
             self.move(0.0,0.0,40.0, 7 )
             self.GOOD_HEIGHT = True
             self.CENTERED = True
 
-        
-        if (self.CENTERED == True):
+        if (self.CENTERED == True):  # if it is in right position for detecting the gate
             
-            #boundaries right for 2 meters away form 
+            #boundaries right for 2 meters away from gate
+            # vertical boundaries
             upper_bound = self.height / 2 - 200
             lower_bound = self.height / 2 - 100
-
+            # horizontal boundaries
             left_bound = self.length / 2 - 100
             right_bound = self.length / 2 + 100
 
             print(center)
 
-
             if self.NO_GATE_DETECTED == True:
                 print("No gate detected")
                 self.move(0.0,0.0,0.0, 0.0)
+                # TODO start looking around
 
             elif center[1] < upper_bound:
                 print('UP')
                 self.move(0.0,0.0,20.0, 0.0)
-                pass
             elif center[1] > lower_bound:
                 print("DOWN")
                 self.move(0.0,0.0,-20.0, 0.0)
-                pass
-            else:
-                print("Vertically alligned")
-
-                if center[0] < left_bound: 
-                    print ("MOVING LEFT")
-                    self.move(-10.0,0.0,0.0, 0.0)
-
-                elif center[0] > right_bound: 
-                    print ("MOVING RIGHT")
-                    self.move(10.0,0.0,0.0, 0.0)
-                else:
-                    print("CENTERED, MOVING FWD")
-                    self.move(0.0,30.0,0.0, 6)
-                    self.PASSED = True
-                    self.CENTERED = False
-                    pass    
-                
+            elif center[0] < left_bound:
+                print ("MOVING LEFT")
+                self.move(-10.0,0.0,0.0, 0.0)
+            elif center[0] > right_bound:
+                print ("MOVING RIGHT")
+                self.move(10.0,0.0,0.0, 0.0)
+            elif size < 250:  # distance from centre to border of gate
+                print("MOVING CLOSER")
+                self.move(0.0, 20.0, 0.0, 0.0)
+            else:  # leap of faith
+                print("CENTERED, MOVING FWD")
+                self.move(0.0,30.0,0.0, 6)
+                self.PASSED = True
+                self.CENTERED = False
 
         if (self.PASSED == True):
                 self.move(0.0,0.0,0.0, 0.01)
@@ -164,16 +154,6 @@ class CamSubscriber(Node):
                 #self.publisher_land.publish(empty_msg)
                 #time.sleep(2)
                 self.CENTERED = True
-                
-               
-
-
-        
-
-        
-
-        
-
 
     def process_image(self, img):
 
@@ -225,7 +205,7 @@ class CamSubscriber(Node):
             cv2.drawContours(img_result, cnts, max_cnt_index, (0,255,0), 3)
 
             #draw rotated rectangle using minAreaRect
-            rect = cv2.minAreaRect(cnts[max_cnt_index])
+            rect, (width, _), _ = cv2.minAreaRect(cnts[max_cnt_index])
             box = cv2.boxPoints(rect)
             box = np.int0(box)
             cv2.drawContours(img_result,[box],0,(0,0,255),3)
@@ -233,6 +213,9 @@ class CamSubscriber(Node):
             #find the center of the rectangle and draw it on the image
             center = (int(rect[0][0]), int(rect[0][1]))
             cv2.circle(img_result, center, 10,(0,0,255),3)
+
+            # calculate size
+            size = width / 2
 
 
         elif self.OPEN_RECTANGLE_DETECTED == True:
@@ -266,11 +249,12 @@ class CamSubscriber(Node):
             if max_x - min_x > 0 and max_y - min_y > 0:
                 rect = cv2.rectangle(img_result, (min_x, min_y), (max_x, max_y), (255, 0, 0), 2)
                 center = ((min_x + max_x) / 2, (min_y + max_y) / 2)
+                size = (max_x - min_x) / 2
 
         # cv2.circle(img_result, (480,360),20,color=(0, 255, 0), thickness=2  ) # plot image center
         # cv2.circle(img_result, (int(center[0]), int(center[1])),10,color=(0, 0, 255), thickness=2  ) # plot gate center
         cv2.imwrite("square_mask.png", img_result)
-        return center
+        return center, size
         
         
         
