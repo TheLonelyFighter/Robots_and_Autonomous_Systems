@@ -52,7 +52,7 @@ class CamSubscriber(Node):
         self.cnt += 1
         #cv.imwrite('camera_image_tello{}.jpeg'.format(self.cnt), cv2_img)
 
-        if (self.cnt % 10 == 0):
+        if (self.cnt % 1 == 0):
             self.move_control(cv2_img)
 
 
@@ -84,14 +84,31 @@ class CamSubscriber(Node):
     def move_control(self,img):
 
       
-        center, size = calculate_centre_gate(img)  # detect qr code
+        center_qr, size_qr = calculate_centre_gate(img)  # detect qr code
 
-        if size != None:
-            cv2.circle(img, center, 20, color=(255, 0, 0), thickness=2)
+        center_mask, size_mask  = self.process_image(img)
+
+        if size_qr > size_mask:
+            center, size = center_qr, size_qr
+            self.NO_GATE_DETECTED = False
             self.ROUND_GATE_DETECTED = True
-        elif size == None:
-            center, size  = self.process_image(img)  # detect colored gates
-            self.ROUND_GATE_DETECTED = False
+        elif size_mask > size_qr:
+            center, size = center_mask, size_mask
+            self.NO_GATE_DETECTED = False
+        else:
+            # no gate detected
+            self.NO_GATE_DETECTED = True
+            center = None
+            size = 0
+
+        # if size != None:
+        #     cv2.circle(img, center, 20, color=(255, 0, 0), thickness=2)
+        #     cv2.imwrite("real_time_img.png",img)
+        #     self.ROUND_GATE_DETECTED = True
+        #     self.NO_GATE_DETECTED = False
+        # elif size == None:
+        #     center, size  = self.process_image(img)  # detect colored gates
+        #     self.ROUND_GATE_DETECTED = False
         
         #cv2.circle(img, (img.shape[0],img.shape[1]),10,color=(0, 255, 0), thickness=2  )
         cv2.circle(img, (480, 360), 10, color=(0, 255 , 0), thickness=2)  # centre of the image
@@ -106,7 +123,7 @@ class CamSubscriber(Node):
             self.TAKE_OFF = True
 
         if (self.GOOD_HEIGHT == False):  # move up
-            self.move(0.0,0.0,40.0, 7 )
+            self.move(0.0,0.0,40.0, 5)
             self.GOOD_HEIGHT = True
             self.CENTERED = True
 
@@ -117,8 +134,8 @@ class CamSubscriber(Node):
             upper_bound = self.height / 2 - 200
             lower_bound = self.height / 2 - 100
             # horizontal boundaries
-            left_bound = self.length / 2 - 100
-            right_bound = self.length / 2 + 100
+            left_bound = self.length / 2 - 50
+            right_bound = self.length / 2 + 50
 
             print(center)
 
@@ -139,21 +156,23 @@ class CamSubscriber(Node):
             elif center[0] > right_bound:
                 print ("MOVING RIGHT")
                 self.move(10.0,0.0,0.0, 0.0)
-            elif size < 250:  # distance from centre to border of gate
+            elif size < 230:  # distance from centre to border of gate
                 print("MOVING CLOSER")
                 self.move(0.0, 20.0, 0.0, 0.0)
             else:  # leap of faith
                 print("CENTERED, MOVING FWD")
-                self.move(0.0,30.0,0.0, 6)
+                self.move(0.0,30.0,0.0, 4)
                 self.PASSED = True
                 self.CENTERED = False
 
         if (self.PASSED == True):
-                self.move(0.0,0.0,0.0, 0.01)
-                empty_msg = Empty()
-                #self.publisher_land.publish(empty_msg)
-                #time.sleep(2)
-                self.CENTERED = True
+            print("Gate passed")
+            self.move(0.0,0.0,0.0, 0.0)
+            #empty_msg = Empty()
+            #self.publisher_land.publish(empty_msg)
+            #time.sleep(2)
+            self.CENTERED = True
+            self.PASSED = False
 
     def process_image(self, img):
 
@@ -198,14 +217,14 @@ class CamSubscriber(Node):
             self.NO_GATE_DETECTED = False
         else:
             self.NO_GATE_DETECTED = True
-            return None
+            return None,0
 
         if self.FULL_RECTANGLE_DETECTED == True:
             #Draw contour around the one with maximum area. The index of the contour with maxiumum area is assigned to max_cnt_index in previous block of code
             cv2.drawContours(img_result, cnts, max_cnt_index, (0,255,0), 3)
 
             #draw rotated rectangle using minAreaRect
-            rect, (width, _), _ = cv2.minAreaRect(cnts[max_cnt_index])
+            rect = cv2.minAreaRect(cnts[max_cnt_index])
             box = cv2.boxPoints(rect)
             box = np.int0(box)
             cv2.drawContours(img_result,[box],0,(0,0,255),3)
@@ -215,6 +234,7 @@ class CamSubscriber(Node):
             cv2.circle(img_result, center, 10,(0,0,255),3)
 
             # calculate size
+            width = rect[1][0]
             size = width / 2
 
 
@@ -254,6 +274,7 @@ class CamSubscriber(Node):
         # cv2.circle(img_result, (480,360),20,color=(0, 255, 0), thickness=2  ) # plot image center
         # cv2.circle(img_result, (int(center[0]), int(center[1])),10,color=(0, 0, 255), thickness=2  ) # plot gate center
         cv2.imwrite("square_mask.png", img_result)
+        print(size)
         return center, size
         
         

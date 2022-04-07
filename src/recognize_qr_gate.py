@@ -68,16 +68,16 @@ def calculate_centre_coordinates(angle, radius, centre_qr, marker_id):
     qr code, as well as the marker_id and the circle radius.
     """
     center_x, center_y = centre_qr
-    if marker_id == 1:  # bottom marker
+    if marker_id == 2:  # bottom marker
         centre_circle_x = -math.sin(angle) * radius + center_x
         centre_circle_y = -math.cos(angle) * radius + center_y
-    elif marker_id == 2:  # top marker
+    elif marker_id == 1:  # top marker
         centre_circle_x = math.sin(angle) * radius + center_x
         centre_circle_y = math.cos(angle) * radius + center_y
-    elif marker_id == 3:  # right
+    elif marker_id == 4:  # right
         centre_circle_x = -math.cos(angle) * radius + center_x
         centre_circle_y = math.sin(angle) * radius + center_y
-    elif marker_id == 4:  # left
+    elif marker_id == 3:  # left
         centre_circle_x = math.cos(angle) * radius + center_x
         centre_circle_y = -math.sin(angle) * radius + center_y
     else:
@@ -141,7 +141,7 @@ def calculate_centre_gate(frame):
     # Flatten the ArUco IDs list
         ids = ids.flatten()
     else:  # if no markers are detected
-        return None, None
+        return None, 0
 
     # Loop over the detected ArUco corners
     centre_circle = []
