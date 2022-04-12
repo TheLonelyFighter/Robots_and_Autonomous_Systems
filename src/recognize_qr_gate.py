@@ -5,6 +5,7 @@ Welcome to the ArUco Marker Detector!
   
 This program:
   - Detects ArUco markers using OpenCV and Python
+  - Calculates the center of the circular gate the markers are placed on.
 '''
   
 from __future__ import print_function # Python 2/3 compatibility
