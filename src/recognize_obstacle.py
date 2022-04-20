@@ -26,6 +26,7 @@ def detect_aruco_code(frame):
         return None, None, frame
 
     center_coordinates = []
+    all_corners = []
     aruco_size = []
     # loop over detected markers
     for (marker_corner, marker_id) in zip(corners, ids):
@@ -39,12 +40,14 @@ def detect_aruco_code(frame):
         bottom_left = convert_to_integer_pair(bottom_left)
         top_left = convert_to_integer_pair(top_left)
 
-        frame, center_x, center_y = draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right)
-        center_coordinates.append((center_x, center_y))
+        # frame, center_x, center_y = draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right)
+        # center_coordinates.append((center_x, center_y))
+        corners = [top_left, top_right, bottom_right, bottom_left]
+        all_corners.append(corners)
 
         _, size = calculate_angle(top_left, bottom_left)
         aruco_size.append(np.round(size).astype(int))
-    return center_coordinates, ids, aruco_size
+    return all_corners, ids, aruco_size
 
 
 if __name__ == '__main__':
