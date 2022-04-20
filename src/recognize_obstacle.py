@@ -5,7 +5,7 @@
 import cv2
 import numpy as np
 
-from recognize_qr_gate import draw_aruco_markers, convert_to_integer_pair
+from recognize_qr_gate import draw_aruco_markers, convert_to_integer_pair, calculate_angle
 
 
 def detect_aruco_code(frame):
@@ -26,7 +26,7 @@ def detect_aruco_code(frame):
         return None, None, frame
 
     center_coordinates = []
-
+    aruco_size = []
     # loop over detected markers
     for (marker_corner, marker_id) in zip(corners, ids):
         # Extract the marker corners
@@ -41,7 +41,10 @@ def detect_aruco_code(frame):
 
         frame, center_x, center_y = draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right)
         center_coordinates.append((center_x, center_y))
-    return center_coordinates, ids, frame
+
+        _, size = calculate_angle(top_left, bottom_left)
+        aruco_size.append(np.round(size).astype(int))
+    return center_coordinates, ids, aruco_size
 
 
 if __name__ == '__main__':
