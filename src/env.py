@@ -17,7 +17,7 @@ class Env:
         #                     ( 0, -1), # go left
         #                     ( 1, 0 ), # go down
         #                     ( 0, 1 )] # go right
-        self.obs = self.obs_map()
+        self.obs, self.goal_points, self.start_points = self.obs_map()
 
     def update_obs(self, obs):
         self.obs = obs
@@ -36,8 +36,8 @@ class Env:
 
         resized_img = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
 
-        aruco_corners, goal_point, starting_point = get_coordinates(resized_img)
+        aruco_corners, goal_points, starting_points = get_coordinates(resized_img)
         print(f'length of aruco_corners = {len(aruco_corners)}.')
         print(aruco_corners)
 
-        return aruco_corners
+        return aruco_corners, goal_points, starting_points

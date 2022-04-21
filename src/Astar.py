@@ -23,10 +23,9 @@ class AStar:
         self.Env = env.Env()  # class Env
 
         self.u_set = self.Env.motions  # feasible input set
-        self.obs = self.Env.obs  # position of obstacles
-
-        self.s_start = (1,1)
-        self.s_goal = (275, 150)
+        self.obs = self.Env.obs # position of obstacles
+        self.s_start = self.Env.start_points[0]
+        self.s_goal = self.Env.goal_points[0]
 
         # print(self.Env.start_point[0])
         # print(self.Env.goal_point[0])

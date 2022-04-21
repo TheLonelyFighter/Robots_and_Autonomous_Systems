@@ -14,7 +14,7 @@ class Plotting:
     def __init__(self, xI, xG):
         self.xI, self.xG = xI, xG
         self.env = env.Env()
-        self.obs = self.env.obs_map()
+        self.obs, self.goal_points, self.start_points, = self.env.obs_map()
 
     def update_obs(self, obs):
         self.obs = obs
@@ -62,9 +62,17 @@ class Plotting:
         obs_x = [x[0] for x in self.obs]
         obs_y = [x[1] for x in self.obs]
 
+        goal_x = [x[0] for x in self.goal_points]
+        goal_y = [x[1] for x in self.goal_points]
+
+        start_x = [x[0] for x in self.start_points]
+        start_y = [x[1] for x in self.start_points]        
+
         plt.plot(self.xI[0], self.xI[1], "bs")
         plt.plot(self.xG[0], self.xG[1], "gs")
         plt.plot(obs_x, obs_y, "sk")
+        plt.plot(goal_x, goal_y, "g")
+        plt.plot(start_x, start_y, "b")
         plt.title(name)
         plt.axis("equal")
 
