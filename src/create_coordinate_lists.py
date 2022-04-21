@@ -14,10 +14,10 @@ def get_coordinates_line(start_point, end_point, limits, vertical=True):
     y_max = limits[0]
     if vertical:
         line = np.arange(np.clip(start_point[1], 0, y_max), np.clip(end_point[1], 0, y_max))
-        coordinate_list = [[np.clip(start_point[0], 0, x_max), y] for y in line]
+        coordinate_list = [(np.clip(start_point[0], 0, x_max), y) for y in line]
     else:  # horizontal line
         line = np.arange(np.clip(start_point[0], 0, x_max), np.clip(end_point[0], 0, x_max))
-        coordinate_list = [[x, np.clip(start_point[1], 0, y_max)] for x in line]
+        coordinate_list = [(x, np.clip(start_point[1], 0, y_max)) for x in line]
     return coordinate_list
 
 

@@ -43,8 +43,13 @@ class AStar:
         self.g[self.s_goal] = math.inf
         heapq.heappush(self.OPEN,
                        (self.f_value(self.s_start), self.s_start))
-
+        cnt = 0
         while self.OPEN:
+
+            if(cnt % 1000 == 0 ):
+                print(cnt)
+            
+            cnt += 1
             _, s = heapq.heappop(self.OPEN)
             self.CLOSED.append(s)
 
@@ -156,23 +161,14 @@ class AStar:
 
 def main():
     s_start = (1, 1)
-    s_goal = (50, 600)
+    s_goal = (700, 350)
 
     astar = AStar(s_start, s_goal, "euclidean")
     plot = plotting.Plotting(s_start, s_goal)
 
     path, visited = astar.searching()   
     print(path)
-    cnt = 0
-    test = []
-    for point in path:
-        if(cnt % 10 == 0):
-            test.append(point)
-        cnt += 1
-    print('--------------------------------')
-    print(test)
-    plot.animation(test, visited, "A*", flag=False)
-   # plot.animation(path, visited, "A*")  # animation
+    plot.animation(path, visited, "A*")  # animation
 
 
 if __name__ == '__main__':
