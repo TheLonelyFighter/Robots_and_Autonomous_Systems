@@ -26,7 +26,6 @@ def update_grid_map(map, frame):
         size = aruco_size[i]  # size of the aruco markers in the frame
         buffer = 2 * size
 
-        # TODO fix adding buffer, because top_left is not top_left
         top_left_buffer = top_left + [-buffer, -buffer]
         print(top_left_buffer)
         top_right_buffer = top_right + [buffer, -buffer]
@@ -34,11 +33,12 @@ def update_grid_map(map, frame):
         bottom_right_buffer = bottom_right + [buffer, buffer]
         print(bottom_left_buffer)
 
-        side = np.arange(size + 2 * buffer)
-        left_side_y = np.arange(bottom_left_buffer[1], top_left_buffer[1])
-        print(left_side_y)
+        left_side_y = np.arange(top_left_buffer[1], bottom_left_buffer[1])
+        left_side = [[top_left_buffer[0], y] for y in left_side_y]
+        print(left_side)
         # TODO add x-coordinates, to create lists of coordinates of the borders of the obstacles
         # TODO create separate lists for the obstacles, goal (all coordinates, not just borders), and starting point
+        obstacle_coordinates = left_side
 
         # if ids[i] == 1:  # goal
         #     map[y - size: y + size, x - size: x + size] = 2  # [rows, columns]
@@ -47,7 +47,7 @@ def update_grid_map(map, frame):
         # else:  # obstacle
         #     map[y - size: y + size, x - size: x + size] = -1
 
-    return map
+    return map, obstacle_coordinates
 
 
 if __name__ == '__main__':

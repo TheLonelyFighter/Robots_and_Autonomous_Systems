@@ -23,7 +23,7 @@ def detect_aruco_code(frame):
     # Flatten the ArUco IDs list
         ids = ids.flatten()
     else:  # if no markers are detected
-        return None, None, frame
+        return None, None, None
 
     center_coordinates = []
     all_corners = []
@@ -52,9 +52,5 @@ def detect_aruco_code(frame):
 
 if __name__ == '__main__':
     image = cv2.imread('../images/new_markers/qr_codes/frame0032.jpg')
-    centers, marker_ids, image = detect_aruco_code(image)
-    print(centers, marker_ids)
-
-    cv2.imshow('frame', image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    aruco_corners, marker_ids, aruco_size = detect_aruco_code(image)
+    print(aruco_corners, marker_ids)
