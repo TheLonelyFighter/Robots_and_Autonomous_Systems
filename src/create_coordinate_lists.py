@@ -39,7 +39,7 @@ def get_coordinates(frame):
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
         # TODO adapt the coordinates to the location of the drone
         size = aruco_size[i]  # size of the aruco markers in the frame
-        buffer = 2 * size
+        buffer = 1 * size
 
         top_left_buffer = top_left + [-buffer, -buffer]
         top_right_buffer = top_right + [buffer, -buffer]
@@ -59,9 +59,9 @@ def get_coordinates(frame):
 
         all_coordinates = left_side + right_side + top_side + bottom_side
 
-        if ids[i] == 1:  # goal
+        if ids[i] == 4:  # goal
             goal_coordinates.extend(all_coordinates)
-        elif ids[i] == 4:  # starting point jetbot
+        elif ids[i] == 0:  # starting point jetbot
             starting_coordinates.extend(all_coordinates)
         else:  # obstacle
             obstacle_coordinates.extend(all_coordinates)

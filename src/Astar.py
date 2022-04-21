@@ -25,7 +25,8 @@ class AStar:
         self.u_set = self.Env.motions  # feasible input set
         self.obs = self.Env.obs # position of obstacles
         self.s_start = self.Env.start_points[0]
-        self.s_goal = self.Env.goal_points[len(self.Env.goal_points) - 1]
+        #self.s_goal = self.Env.goal_points[len(self.Env.goal_points) - 1]
+        self.s_goal = (500,100)
 
         self.OPEN = []  # priority queue / OPEN set
         self.CLOSED = []  # CLOSED set / VISITED order

@@ -51,6 +51,7 @@ def detect_aruco_code(frame):
 
 
 if __name__ == '__main__':
-    image = cv2.imread('../images/new_markers/qr_codes/frame0032.jpg')
+    image = cv2.imread('../images/obstacle_course/test1.jpg')
     aruco_corners, marker_ids, aruco_size = detect_aruco_code(image)
-    print(aruco_corners, marker_ids)
+    print(marker_ids)
+    print(len(marker_ids))

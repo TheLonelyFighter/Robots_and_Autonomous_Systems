@@ -27,14 +27,18 @@ class Env:
         Initialize obstacles' positions
         :return: map of obstacles
         """
-        image = cv2.imread('../images/new_markers/qr_codes/frame0032.jpg')
+        image = cv2.imread('../images/obstacle_course/test1.jpg')
 
-        scale_percent = 30 #percent of original image
+        scale_percent = 50 #percent of original image
         width = int(image.shape[1] * scale_percent / 100)
         height = int(image.shape[0] * scale_percent / 100)
         dim = (width, height)
 
         resized_img = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
+
+        # cv2.imshow('resized', resized_img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         aruco_corners, goal_points, starting_points = get_coordinates(resized_img)
         #print(f'length of aruco_corners = {len(aruco_corners)}.')
