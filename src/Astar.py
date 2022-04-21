@@ -17,15 +17,19 @@ import plotting, env
 class AStar:
     """AStar set the cost + heuristics as the priority
     """
-    def __init__(self, s_start, s_goal, heuristic_type):
-        self.s_start = s_start
-        self.s_goal = s_goal
+    def __init__(self, heuristic_type):
         self.heuristic_type = heuristic_type
 
         self.Env = env.Env()  # class Env
 
         self.u_set = self.Env.motions  # feasible input set
         self.obs = self.Env.obs  # position of obstacles
+
+        self.s_start = (1,1)
+        self.s_goal = (275, 150)
+
+        # print(self.Env.start_point[0])
+        # print(self.Env.goal_point[0])
 
         self.OPEN = []  # priority queue / OPEN set
         self.CLOSED = []  # CLOSED set / VISITED order
@@ -160,11 +164,9 @@ class AStar:
 
 
 def main():
-    s_start = (1, 1)
-    s_goal = (700, 350)
 
-    astar = AStar(s_start, s_goal, "euclidean")
-    plot = plotting.Plotting(s_start, s_goal)
+    astar = AStar("euclidean")
+    plot = plotting.Plotting(astar.s_start, astar.s_goal)
 
     path, visited = astar.searching()   
     print(path)

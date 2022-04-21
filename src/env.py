@@ -28,8 +28,16 @@ class Env:
         :return: map of obstacles
         """
         image = cv2.imread('../images/new_markers/qr_codes/frame0032.jpg')
-        aruco_corners, goal_point, starting_point = get_coordinates(image)
+
+        scale_percent = 30 #percent of original image
+        width = int(image.shape[1] * scale_percent / 100)
+        height = int(image.shape[0] * scale_percent / 100)
+        dim = (width, height)
+
+        resized_img = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
+
+        aruco_corners, goal_point, starting_point = get_coordinates(resized_img)
         print(f'length of aruco_corners = {len(aruco_corners)}.')
-        #print(aruco_corners)
+        print(aruco_corners)
 
         return aruco_corners

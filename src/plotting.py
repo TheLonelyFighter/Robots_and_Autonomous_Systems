@@ -19,10 +19,10 @@ class Plotting:
     def update_obs(self, obs):
         self.obs = obs
 
-    def animation(self, path, visited, name, flag):
+    def animation(self, path, visited, name):
         self.plot_grid(name)
         #self.plot_visited(visited)
-        self.plot_path(path, flag)
+        self.plot_path(path)
         plt.show()
 
     def animation_lrta(self, path, visited, name):
