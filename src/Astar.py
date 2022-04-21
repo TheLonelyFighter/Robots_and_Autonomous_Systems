@@ -25,10 +25,7 @@ class AStar:
         self.u_set = self.Env.motions  # feasible input set
         self.obs = self.Env.obs # position of obstacles
         self.s_start = self.Env.start_points[0]
-        self.s_goal = self.Env.goal_points[0]
-
-        # print(self.Env.start_point[0])
-        # print(self.Env.goal_point[0])
+        self.s_goal = self.Env.goal_points[len(self.Env.goal_points) - 1]
 
         self.OPEN = []  # priority queue / OPEN set
         self.CLOSED = []  # CLOSED set / VISITED order
@@ -168,7 +165,7 @@ def main():
     plot = plotting.Plotting(astar.s_start, astar.s_goal)
 
     path, visited = astar.searching()   
-    print(path)
+    #print(path)
     plot.animation(path, visited, "A*")  # animation
 
 

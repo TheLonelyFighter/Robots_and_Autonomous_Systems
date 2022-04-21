@@ -37,7 +37,7 @@ class Env:
         resized_img = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
 
         aruco_corners, goal_points, starting_points = get_coordinates(resized_img)
-        print(f'length of aruco_corners = {len(aruco_corners)}.')
-        print(aruco_corners)
+        #print(f'length of aruco_corners = {len(aruco_corners)}.')
+        #print(aruco_corners)
 
         return aruco_corners, goal_points, starting_points
