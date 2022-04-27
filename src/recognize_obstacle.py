@@ -10,18 +10,21 @@ from recognize_qr_gate import draw_aruco_markers, convert_to_integer_pair, calcu
 
 def detect_aruco_code(frame):
     """ Detects the aruco code in a frame and returns the coordinates. """
-    ARUCO_DICT = cv2.aruco.DICT_4X4_50
+    ARUCO_DICT = cv2.aruco.DICT_4X4_250
     aruco_dictionary = cv2.aruco.Dictionary_get(ARUCO_DICT)
 
     # Detect ArUco markers in the video frame
     aruco_parameters = cv2.aruco.DetectorParameters_create()
     (corners, ids, rejected) = cv2.aruco.detectMarkers(
         frame, aruco_dictionary, parameters=aruco_parameters)
+    
+
 
     # Check that at least one ArUco marker was detected
     if len(corners) > 0:
     # Flatten the ArUco IDs list
         ids = ids.flatten()
+
     else:  # if no markers are detected
         return None, None, None
 
@@ -40,13 +43,20 @@ def detect_aruco_code(frame):
         bottom_left = convert_to_integer_pair(bottom_left)
         top_left = convert_to_integer_pair(top_left)
 
-        # frame, center_x, center_y = draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right)
+        frame, center_x, center_y = draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right)
         # center_coordinates.append((center_x, center_y))
         corners = [top_left, top_right, bottom_right, bottom_left]
         all_corners.append(corners)
 
+
         _, size = calculate_angle(top_left, bottom_left)
+        # cv2.putText(frame, str(np.round(size).astype(int)), (bottom_left[0], bottom_left[1] - 15),
+        #             cv2.FONT_HERSHEY_SIMPLEX,
+        #             0.5, (0, 255, 0), 2)
         aruco_size.append(np.round(size).astype(int))
+
+    cv2.imshow("Image", frame)
+    cv2.waitKey(0)
     return all_corners, ids, aruco_size
 
 

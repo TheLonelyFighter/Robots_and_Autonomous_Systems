@@ -39,7 +39,7 @@ def get_coordinates(frame):
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
         # TODO adapt the coordinates to the location of the drone
         size = aruco_size[i]  # size of the aruco markers in the frame
-        buffer = 1 * size
+        buffer = 15
 
         top_left_buffer = top_left + [-buffer, -buffer]
         top_right_buffer = top_right + [buffer, -buffer]

@@ -166,7 +166,7 @@ def main():
     plot = plotting.Plotting(astar.s_start, astar.s_goal)
 
     path, visited = astar.searching()   
-    #print(path)
+    print(path)
     plot.animation(path, visited, "A*")  # animation
 
 

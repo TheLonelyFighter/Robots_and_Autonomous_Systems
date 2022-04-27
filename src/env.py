@@ -8,15 +8,12 @@ from create_coordinate_lists import get_coordinates
 
 class Env:
     def __init__(self):
-        self.x_range = 960  # size of background
-        self.y_range = 720
+        self.image = cv2.imread('../images/obstacle_course/test1.jpg')
+        self.x_range = self.image.shape[1]  # size of background
+        self.y_range = self.image.shape[0]
         self.motions = [(-1, 0), (-1, 1), (0, 1), (1, 1),
                         (1, 0), (1, -1), (0, -1), (-1, -1)]
 
-        # self.motions  =  [  ( 1, 0 ), # go up
-        #                     ( 0, -1), # go left
-        #                     ( 1, 0 ), # go down
-        #                     ( 0, 1 )] # go right
         self.obs, self.goal_points, self.start_points = self.obs_map()
 
     def update_obs(self, obs):
@@ -27,14 +24,17 @@ class Env:
         Initialize obstacles' positions
         :return: map of obstacles
         """
-        image = cv2.imread('../images/obstacle_course/test1.jpg')
+        
 
         scale_percent = 50 #percent of original image
-        width = int(image.shape[1] * scale_percent / 100)
-        height = int(image.shape[0] * scale_percent / 100)
+        width = int(self.image.shape[1] * scale_percent / 100)
+        height = int(self.image.shape[0] * scale_percent / 100)
+        self.x_range = width
+        self.y_range = height
         dim = (width, height)
+        print(dim)
 
-        resized_img = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
+        resized_img = cv2.resize(self.image, dim, interpolation= cv2.INTER_AREA)
 
         # cv2.imshow('resized', resized_img)
         # cv2.waitKey(0)
