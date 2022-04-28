@@ -55,8 +55,8 @@ def detect_aruco_code(frame):
         #             0.5, (0, 255, 0), 2)
         aruco_size.append(np.round(size).astype(int))
 
-    cv2.imshow("Image", frame)
-    cv2.waitKey(0)
+    # cv2.imshow("Image", frame)
+    # cv2.waitKey(0)
     return all_corners, ids, aruco_size
 
 

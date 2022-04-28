@@ -7,6 +7,9 @@ import rclpy
 from rclpy.node import Node
 import sys
 from geometry_msgs.msg  import Twist
+from sensor_msgs.msg import Image
+
+import Astar, plotting
 
 
 def angle_calculator(current_location, next_point):
@@ -28,8 +31,13 @@ class PathTracker(Node):
         super().__init__('image_listener')
         self.cnt = 0
         self.image_sub = self.create_subscription(Image, 'Obstacle_map', self.image_sub_callback, 10)
-        self.optitrack = self.create_subscription()  # create subscription for optitrack system
+        #self.optitrack = self.create_subscription()  # create subscription for optitrack system
         self.motor_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        
+        self.astar = Astar.AStar("euclidean")
+        self.path_coordinates = []
+        self.goal_points = []
+        self.start_points = [] 
 
     def move_jetbot(self, turn, speed=20, angular_speed=5):
         vel = Twist()
@@ -44,8 +52,20 @@ class PathTracker(Node):
 
     def image_sub_callback(self, msg):
         """
-        Use A* algorithm for path planning. Get coordinate list for
+        Use A* algorithm for path planning. Get coordinate list for path tracking
         """
+        self.astar.obs, self.goal_points, self.start_points, dim = self.astar.Env.obs_map(msg)
+        self.astar.s_start = self.start_points[0]
+        self.astar.s_goal = (500,125)
+        plot = plotting.Plotting(self.astar.s_start, self.astar.s_goal,
+                                 self.astar.obs, self.goal_points, self.start_points, dim)
+        
+        self.path_coordinates, visited, = self.astar.searching()
+
+        print(self.path_coordinates)
+        plot.animation(self.path_coordinates, visited, "A*")
+
+
 
     def update_current_state(self):
         """ Update current state using optitrack system. """

@@ -11,13 +11,12 @@ import env
 
 
 class Plotting:
-    def __init__(self, xI, xG):
+    def __init__(self, xI, xG, obs, goal_points, start_points, img_dim):
         self.xI, self.xG = xI, xG
         self.env = env.Env()
-        #self.obs, self.goal_points, self.start_points, = self.env.obs_map()
-
-    def update_obs(self, obs):
-        self.obs = obs
+        self.x_range = img_dim[0]
+        self.y_range = img_dim[1]
+        self.obs, self.goal_points, self.start_points = obs, goal_points, start_points
 
     def animation(self, path, visited, name):
         self.plot_grid(name)
@@ -26,18 +25,18 @@ class Plotting:
         plt.show()
 
     def plot_grid(self, name):
-        obs_x = [x[0] for x in self.env.obs]
-        obs_y = [x[1] for x in self.env.obs]
+        obs_x = [x[0] for x in self.obs]
+        obs_y = [x[1] for x in self.obs]
 
-        goal_x = [x[0] for x in self.env.goal_points]
-        goal_y = [x[1] for x in self.env.goal_points]
+        goal_x = [x[0] for x in self.goal_points]
+        goal_y = [x[1] for x in self.goal_points]
 
-        start_x = [x[0] for x in self.env.start_points]
-        start_y = [x[1] for x in self.env.start_points]        
+        start_x = [x[0] for x in self.start_points]
+        start_y = [x[1] for x in self.start_points]
 
         ax = plt.gca()
-        ax.set_xlim([0, self.env.x_range])
-        ax.set_ylim([0, self.env.y_range])
+        ax.set_xlim([0, self.x_range])
+        ax.set_ylim([0, self.y_range])            
 
         plt.plot(self.xI[0], self.xI[1], "bs", markersize='1')
         plt.plot(self.xG[0], self.xG[1], "gs", markersize='1')

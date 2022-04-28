@@ -7,10 +7,7 @@ import os
 import sys
 import math
 import heapq
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
-                "/../../Search_based_Planning/")
-
+import cv2
 import plotting, env
 
 
@@ -23,10 +20,10 @@ class AStar:
         self.Env = env.Env()  # class Env
 
         self.u_set = self.Env.motions  # feasible input set
-        self.obs = self.Env.obs # position of obstacles
-        self.s_start = self.Env.start_points[0]
-        #self.s_goal = self.Env.goal_points[len(self.Env.goal_points) - 1]
-        self.s_goal = (500,100)
+
+        self.s_start = []
+        self.s_goal = []
+        self.obs = []
 
         self.OPEN = []  # priority queue / OPEN set
         self.CLOSED = []  # CLOSED set / VISITED order
@@ -161,9 +158,12 @@ class AStar:
 
 
 def main():
-
+    image = cv2.imread("../images/obstacle_course/test1.jpg")
     astar = AStar("euclidean")
-    plot = plotting.Plotting(astar.s_start, astar.s_goal)
+    astar.obs, goal_points, starting_points, dim = astar.Env.obs_map(image)
+    astar.s_start = starting_points[0]
+    astar.s_goal = (500,125)
+    plot = plotting.Plotting(astar.s_start, astar.s_goal, astar.obs, goal_points, starting_points, dim)
 
     path, visited = astar.searching()   
     print(path)
