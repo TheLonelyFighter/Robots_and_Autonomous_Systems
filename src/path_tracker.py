@@ -11,7 +11,7 @@ import sys
 import Astar, plotting
 from geometry_msgs.msg  import Twist, PoseStamped
 from sensor_msgs.msg import Image
-from tf.transformations import euler_from_quaternion
+#from tf.transformations import euler_from_quaternion
 
 
 def angle_calculator(current_location, next_point):
@@ -42,7 +42,7 @@ class PathTracker(Node):
         self.motor_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         self.yaw = 0  # to test system without optitrack
 
-    def move_jetbot(self, turn, speed=20, angular_speed=5):
+    def move_jetbot(self, turn, speed=15.0, angular_speed=5.0):
         """ Move the jetbot. """
         vel = Twist()
         if turn == 0:
@@ -64,12 +64,13 @@ class PathTracker(Node):
         """
         self.astar.obs, self.goal_points, self.start_points, dim = self.astar.Env.obs_map(msg)
         self.astar.s_start = self.start_points[0]
-        self.astar.s_goal = np.array((500,125))
+        self.astar.s_goal = (500,125)
         plot = plotting.Plotting(self.astar.s_start, self.astar.s_goal,
                                  self.astar.obs, self.goal_points, self.start_points, dim)
         
         self.path_coordinates, visited = self.astar.searching()
 
+        self.path_coordinates.reverse() #For some reason, the path list starts from the goal, goes to the start, so we reverse the list
         print(self.path_coordinates)
         plot.animation(self.path_coordinates, visited, "A*")
 
@@ -81,11 +82,15 @@ class PathTracker(Node):
         position_difference = next_point - current_coordinates
 
         angle = angle_calculator(current_coordinates, next_point)
+        print("angle in rad= ", angle)
+        print("angle in degree = ", np.rad2deg(angle))
+        print(f'current_coordinates = {current_coordinates}, next_point = {next_point}.')
         self.yaw = angle  # to test system without optitrack
         turn = difference_current_goal(current_direction, angle)
-        move_jetbot(turn)
+        self.move_jetbot(turn)
 
-        if position_difference < 10:  # if it is close enough, take the next way point
+        #TODO I don't know if this will work, the previous solution gave an error because you can not compare absolute difference with a list
+        if abs(position_difference[0]) < 10 and abs(position_difference[1]) < 10:  # if it is close enough, take the next way point
             self.cnt += 1
 
     def optitrack_sub_callback(self, msg):
@@ -97,12 +102,16 @@ class PathTracker(Node):
         # current_direction = yaw
         if len(self.path_coordinates) == 0:  # path is not calculated yet
             pass
+            print("No path yet")
         else:
-            # if sum(abs(self.astar.s_goal - current_coordinates)) < 10:
+            # if sum(abs(np.array(self.astar.s_goal) - current_coordinates)) < 10:
             # reached goal, TODO stop
             current_coordinates = self.path_coordinates[self.cnt]  # to test system without optitrack
             current_direction = self.yaw  # to test system without optitrack
+            print(f'current_direction = {current_direction}')
             self.update_current_state(current_coordinates, current_direction)
+            
+            self.cnt += 1
 
 
 def main():
