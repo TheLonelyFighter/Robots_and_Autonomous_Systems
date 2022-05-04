@@ -35,6 +35,7 @@ def get_coordinates(frame):
     obstacle_coordinates = []
     goal_coordinates = []
     starting_coordinates = []
+    corner_marker = {}
     # loop through detected obstacles
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
         # TODO adapt the coordinates to the location of the drone
@@ -63,13 +64,42 @@ def get_coordinates(frame):
             goal_coordinates.extend(all_coordinates)
         elif ids[i] == 0:  # starting point jetbot
             starting_coordinates.extend(all_coordinates)
+        elif ids[i] in [101, 102, 103, 104]:  # corner marker
+            corner_marker[ids[i]] = top_left
         else:  # obstacle
             obstacle_coordinates.extend(all_coordinates)
 
-    return obstacle_coordinates, goal_coordinates, starting_coordinates
+
+    obstacle_opti = np.unique([map_range(obstacle, corner_marker) for obstacle in obstacle_coordinates], axis=0)
+    start_opti = np.unique([map_range(start, corner_marker) for start in starting_coordinates], axis=0)
+    goal_opti = np.unique([map_range(goal, corner_marker) for goal in goal_coordinates], axis=0)
+
+    return obstacle_opti, goal_opti, start_opti
+
+
+def map_range(input_coordinates, corner_marker):
+    """
+    Converts pixels to optitrack coordinates based on coordinates of markers in image
+    with calibrated optitrack coordinates.
+    """
+    marker_101 = [100, 100]  # optitrack coordinates of markers
+    marker_102 = [200, 200]
+    marker_103 = [100, 200]
+    marker_104 = [200, 100]
+
+    x, y = input_coordinates
+
+    in_min_x, in_max_x = corner_marker[101][0], corner_marker[102][0]
+    out_min_x, out_max_x = marker_101[0], marker_102[0]
+    x_new = (x - in_min_x) * (out_max_x - out_min_x) // (in_max_x - in_min_x) + out_min_x
+
+    in_min_y, in_max_y = corner_marker[101][1], corner_marker[102][1]
+    out_min_y, out_max_y = marker_101[1], marker_102[1]
+    y_new = (y - in_min_y) * (out_max_y - out_min_y) // (in_max_y - in_min_y) + out_min_y
+    return [x_new, y_new]
 
 
 if __name__ == '__main__':
-    image = cv2.imread('../images/new_markers/qr_codes/frame0032.jpg')
+    image = cv2.imread('../images/obstacle_course/test1.jpg')
 
     obstacles, goal, start = get_coordinates(image)
