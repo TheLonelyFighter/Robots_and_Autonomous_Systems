@@ -44,7 +44,7 @@ def detect_aruco_code(frame):
         top_left = convert_to_integer_pair(top_left)
 
         frame, center_x, center_y = draw_aruco_markers(frame, marker_id, top_left, top_right, bottom_left, bottom_right)
-        # center_coordinates.append((center_x, center_y))
+        # center_coordinates.append((center_x, center_y))q
         corners = [top_left, top_right, bottom_right, bottom_left]
         all_corners.append(corners)
 
@@ -62,6 +62,14 @@ def detect_aruco_code(frame):
 
 if __name__ == '__main__':
     image = cv2.imread('../images/obstacle_course/test1.jpg')
-    aruco_corners, marker_ids, aruco_size = detect_aruco_code(image)
+
+    scale_percent = 60 #percent of original image
+    width = int(image.shape[1] * scale_percent / 100)
+    height = int(image.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    print("shape of original image: ", image.shape)
+
+    resized_img = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
+    aruco_corners, marker_ids, aruco_size = detect_aruco_code(resized_img)
     print(marker_ids)
     print(len(marker_ids))
