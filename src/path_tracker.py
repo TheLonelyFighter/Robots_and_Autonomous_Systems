@@ -22,7 +22,7 @@ def angle_calculator(current_location, next_point):
 
 def difference_current_goal(current_yaw, goal_yaw):
     """ Calculate the difference between the current orientation and the orientation in which its supposed to be."""
-    buffer = 0.2 # if it's close enough, don't turn
+    buffer = 0.05 # if it's close enough, don't turn
     turn = goal_yaw - current_yaw
     if -buffer < turn < buffer:
         turn = 0
@@ -65,12 +65,13 @@ class PathTracker(Node):
         self.goal_points = []
         self.start_points = []
         self.got_map = False
+        self.reach_goal = False
         self.image_sub = self.create_subscription(Image, '/obstacle_map', self.image_sub_callback, 10)
         self.optitrack = self.create_subscription(PoseStamped, '/vrpn_client_node/jetbot146/pose', self.optitrack_sub_callback, 10)  # create subscription for optitrack system
         self.motor_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         self.yaw = 0  # to test system without optitrack
 
-    def move_jetbot(self, turn, speed=0.27, angular_speed=0.55):
+    def move_jetbot(self, turn, speed=0.3, angular_speed=0.6):
         """ Move the jetbot. """
         vel = Twist()
         if turn == 0:
@@ -110,25 +111,27 @@ class PathTracker(Node):
 
     def update_current_state(self, current_coordinates, current_direction):
         """ Update current state using optitrack system. """
-        if(self.pos_cnt + 1 >= len(self.path_coordinates)):
-            #Reached end, stop
-            self.move_jetbot(turn=0, speed=0.0, angular_speed=0.0)
-        else:
-            next_point = np.array(self.path_coordinates[self.pos_cnt + 1])
+        if not self.reach_goal:
+            if(self.pos_cnt + 1 >= len(self.path_coordinates)):
+                #Reached end, stop
+                self.move_jetbot(turn=0, speed=0.0, angular_speed=0.0)
+                self.reach_goal = True
+            else:
+                next_point = np.array(self.path_coordinates[self.pos_cnt + 1])
 
-            position_difference = next_point - current_coordinates
-            print(f'position_difference: {position_difference}.')
-            angle = angle_calculator(current_coordinates, next_point)
-            print("angle in rad= ", angle)
-            #print("angle in degree = ", np.rad2deg(angle))
-            print(f'current_coordinates = {current_coordinates}, next_point = {next_point}.')
-            self.yaw = angle  # to test system without optitrack
-            turn = difference_current_goal(current_direction, angle)
-            self.move_jetbot(turn)
+                position_difference = next_point - current_coordinates
+                print(f'position_difference: {position_difference}.')
+                angle = angle_calculator(current_coordinates, next_point)
+                print("angle in rad= ", angle)
+                #print("angle in degree = ", np.rad2deg(angle))
+                print(f'current_coordinates = {current_coordinates}, next_point = {next_point}.')
+                self.yaw = angle  # to test system without optitrack
+                turn = difference_current_goal(current_direction, angle)
+                self.move_jetbot(turn)
 
-            #TODO I don't know if this will work, the previous solution gave an error because you can not compare absolute difference with a list
-            if abs(position_difference[0]) < 15 and abs(position_difference[1]) < 15:  # if it is close enough, take the next way point
-                self.pos_cnt += 1
+                #TODO I don't know if this will work, the previous solution gave an error because you can not compare absolute difference with a list
+                if abs(position_difference[0]) < 15 and abs(position_difference[1]) < 15:  # if it is close enough, take the next way point
+                    self.pos_cnt += 1
 
     def optitrack_sub_callback(self, msg):
         """ Callback for optitrack system. """
@@ -143,6 +146,7 @@ class PathTracker(Node):
                 pass
                 print("No path yet")
                 self.current_coordinates = (int(msg.pose.position.x * 100), int(msg.pose.position.y * 100))
+                self.current_direction = euler_from_quaternion(msg.pose.orientation)[-1]
             else:
                 # if sum(abs(np.array(self.astar.s_goal) - current_coordinates)) < 10:
                 # reached goal, TODO stop

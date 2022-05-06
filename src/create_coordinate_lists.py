@@ -41,7 +41,7 @@ def get_coordinates(frame):
     # loop through detected obstacles
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
         size = aruco_size[i]  # size of the aruco markers in the frame
-        buffer = 10
+        buffer = 100
         all_coordinates = []
 
         top_left_buffer = top_left + [-buffer, -buffer]
@@ -60,7 +60,7 @@ def get_coordinates(frame):
         all_coordinates = left_side + right_side + top_side + bottom_side
 
         if ids[i] == 0:  # goal
-            goal_coordinates.extend(all_coordinates)
+            goal_coordinates = [center_rectangle]
         elif ids[i] == 2:  # starting point jetbot
             starting_coordinates.extend(all_coordinates)
         elif ids[i] in [101, 102, 103, 104]:  # corner marker
