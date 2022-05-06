@@ -64,7 +64,7 @@ def detect_aruco_code(frame):
 if __name__ == '__main__':
     image = cv2.imread('../images/obstacle_course/test1.jpg')
 
-    scale_percent = 60 #percent of original image
+    scale_percent = 100 #percent of original image
     width = int(image.shape[1] * scale_percent / 100)
     height = int(image.shape[0] * scale_percent / 100)
     dim = (width, height)

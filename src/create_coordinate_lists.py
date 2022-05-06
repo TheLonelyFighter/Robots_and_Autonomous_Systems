@@ -41,7 +41,7 @@ def get_coordinates(frame):
     # loop through detected obstacles
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
         size = aruco_size[i]  # size of the aruco markers in the frame
-        buffer = 0
+        buffer = 10
         all_coordinates = []
 
         top_left_buffer = top_left + [-buffer, -buffer]
@@ -59,9 +59,9 @@ def get_coordinates(frame):
 
         all_coordinates = left_side + right_side + top_side + bottom_side
 
-        if ids[i] == 2:  # goal
+        if ids[i] == 0:  # goal
             goal_coordinates.extend(all_coordinates)
-        elif ids[i] == 0:  # starting point jetbot
+        elif ids[i] == 2:  # starting point jetbot
             starting_coordinates.extend(all_coordinates)
         elif ids[i] in [101, 102, 103, 104]:  # corner marker
             corner_marker[ids[i]] = center_rectangle
@@ -71,13 +71,13 @@ def get_coordinates(frame):
             print("Rejected markers found: ", i)
 
     obstacle_opti = np.unique([map_range(obstacle, corner_marker) for obstacle in obstacle_coordinates], axis=0).tolist()
-    start_opti = np.unique([map_range(start, corner_marker) for start in starting_coordinates], axis=0)
+    #start_opti = np.unique([map_range(start, corner_marker) for start in starting_coordinates], axis=0)
     goal_opti = np.unique([map_range(goal, corner_marker) for goal in goal_coordinates], axis=0)
     
     plot_ranges = map_range((shape[1],shape[0]), corner_marker)
-    # #print(f'plot_ranges: {plot_ranges}')
+    print(f'plot_ranges: {plot_ranges}')
 
-    return obstacle_opti, goal_opti, start_opti, plot_ranges
+    return obstacle_opti, goal_opti, [], plot_ranges
 
 
 def map_range(input_coordinates, corner_marker):
@@ -87,19 +87,19 @@ def map_range(input_coordinates, corner_marker):
     """
 
     # optitrack coordinates of markers
-    marker_101 = [106, 194] #bottom_left
-    marker_102 = [242, 309] #top_right
-    marker_103 = [245, 196] #bottom_right
+    marker_101 = [76, 196] #bottom_left
+    marker_102 = [216, 311] #top_right
+    marker_103 = [215, 197] #bottom_right
     marker_104 = [102, 307] #top_left
 
     x, y = input_coordinates
 
-    in_min_x, in_max_x = corner_marker[101][0], corner_marker[103][0]
-    out_min_x, out_max_x = marker_101[0], marker_103[0]
+    in_min_x, in_max_x = corner_marker[101][0], corner_marker[102][0]
+    out_min_x, out_max_x = marker_101[0], marker_102[0]
     x_new = (x - in_min_x) * (out_max_x - out_min_x) // (in_max_x - in_min_x) + out_min_x
 
-    in_min_y, in_max_y = corner_marker[101][1], corner_marker[103][1]
-    out_min_y, out_max_y = marker_101[1], marker_103[1]
+    in_min_y, in_max_y = corner_marker[101][1], corner_marker[102][1]
+    out_min_y, out_max_y = marker_101[1], marker_102[1]
     y_new = (y - in_min_y) * (out_max_y - out_min_y) // (in_max_y - in_min_y) + out_min_y
     return [x_new, y_new]
 

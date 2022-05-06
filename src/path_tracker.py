@@ -22,7 +22,7 @@ def angle_calculator(current_location, next_point):
 
 def difference_current_goal(current_yaw, goal_yaw):
     """ Calculate the difference between the current orientation and the orientation in which its supposed to be."""
-    buffer = 5  # if it's close enough, don't turn
+    buffer = 0.2 # if it's close enough, don't turn
     turn = goal_yaw - current_yaw
     if -buffer < turn < buffer:
         turn = 0
@@ -57,18 +57,20 @@ class PathTracker(Node):
     def __init__(self):
         super().__init__('image_listener')
         self.cnt = 0
+        self.pos_cnt = 0
         self.astar = Astar.AStar("euclidean")
         self.current_coordinates = ()
         self.current_direction = 0
         self.path_coordinates = []
         self.goal_points = []
         self.start_points = []
+        self.got_map = False
         self.image_sub = self.create_subscription(Image, '/obstacle_map', self.image_sub_callback, 10)
-        self.optitrack = self.create_subscription(PoseStamped, '/vrpn_client_node/jetbot146/pos', self.optitrack_sub_callback, 10)  # create subscription for optitrack system
+        self.optitrack = self.create_subscription(PoseStamped, '/vrpn_client_node/jetbot146/pose', self.optitrack_sub_callback, 10)  # create subscription for optitrack system
         self.motor_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         self.yaw = 0  # to test system without optitrack
 
-    def move_jetbot(self, turn, speed=15.0, angular_speed=5.0):
+    def move_jetbot(self, turn, speed=0.27, angular_speed=0.55):
         """ Move the jetbot. """
         vel = Twist()
         if turn == 0:
@@ -88,47 +90,45 @@ class PathTracker(Node):
         """
         Use A* algorithm for path planning. Get coordinate list for path tracking
         """
-        self.astar.obs, self.goal_points, self.start_points, dim = self.astar.Env.obs_map(msg)
-        # print(f'goal_points: {self.goal_points}\n.')
-        # print(f'start_points: {self.start_points}\n.')
-        self.astar.s_start = (self.start_points[0][0], self.start_points[0][1])
-        self.astar.s_goal = (self.goal_points[0][0], self.goal_points[0][1])
-        # self.astar.s_start = (0,0)
-        # self.astar.s_goal = (10,10)              
-        print("goal: ", self.astar.s_goal)
-        print("start: ", self.astar.s_start)
+        if not self.got_map:
+            self.got_map = True
+            self.astar.obs, self.goal_points, self.start_points, dim = self.astar.Env.obs_map(msg)
+            self.astar.s_start = self.current_coordinates
+            self.astar.s_goal = (self.goal_points[0][0], self.goal_points[0][1])             
+            print("goal: ", self.astar.s_goal)
+            print("start: ", self.astar.s_start)
 
-        plot = plotting.Plotting(self.astar.s_start, self.astar.s_goal,
-                                 self.astar.obs, self.goal_points, self.start_points, (300,300))
-        
-        self.path_coordinates, visited = self.astar.searching()
+            plot = plotting.Plotting(self.astar.s_start, self.astar.s_goal,
+                                    self.astar.obs, self.goal_points, self.start_points, (350,350))
+            
+            self.path_coordinates, visited = self.astar.searching()
 
-        self.path_coordinates.reverse() #For some reason, the path list starts from the goal, goes to the start, so we reverse the list
-        print(self.path_coordinates)
-        plot.animation(self.path_coordinates, visited, "A*")
+            self.path_coordinates.reverse() #For some reason, the path list starts from the goal, goes to the start, so we reverse the list
+            print(self.path_coordinates)
+            plot.animation(self.path_coordinates, visited, "A*")
 
 
     def update_current_state(self, current_coordinates, current_direction):
         """ Update current state using optitrack system. """
-        if(self.cnt + 1 > len(self.path_coordinates)):
+        if(self.pos_cnt + 1 >= len(self.path_coordinates)):
             #Reached end, stop
-            self.move_jetbot(turn=0, speed=0, angular_speed=0)
+            self.move_jetbot(turn=0, speed=0.0, angular_speed=0.0)
         else:
-            next_point = np.array(self.path_coordinates[self.cnt + 1])
+            next_point = np.array(self.path_coordinates[self.pos_cnt + 1])
 
             position_difference = next_point - current_coordinates
-
+            print(f'position_difference: {position_difference}.')
             angle = angle_calculator(current_coordinates, next_point)
             print("angle in rad= ", angle)
-            print("angle in degree = ", np.rad2deg(angle))
+            #print("angle in degree = ", np.rad2deg(angle))
             print(f'current_coordinates = {current_coordinates}, next_point = {next_point}.')
             self.yaw = angle  # to test system without optitrack
             turn = difference_current_goal(current_direction, angle)
             self.move_jetbot(turn)
 
             #TODO I don't know if this will work, the previous solution gave an error because you can not compare absolute difference with a list
-            if abs(position_difference[0]) < 10 and abs(position_difference[1]) < 10:  # if it is close enough, take the next way point
-                self.cnt += 1
+            if abs(position_difference[0]) < 15 and abs(position_difference[1]) < 15:  # if it is close enough, take the next way point
+                self.pos_cnt += 1
 
     def optitrack_sub_callback(self, msg):
         """ Callback for optitrack system. """
@@ -138,10 +138,11 @@ class PathTracker(Node):
         # current_coordinates = [x, y]
         # current_direction = yaw
 
-        if(self.cnt % 33 == 0): #Check roughly 3 times per second to change orientation
+        if(self.cnt % 1 == 0):
             if len(self.path_coordinates) == 0:  # path is not calculated yet
                 pass
                 print("No path yet")
+                self.current_coordinates = (int(msg.pose.position.x * 100), int(msg.pose.position.y * 100))
             else:
                 # if sum(abs(np.array(self.astar.s_goal) - current_coordinates)) < 10:
                 # reached goal, TODO stop
@@ -153,7 +154,7 @@ class PathTracker(Node):
 
                 print(f'current_direction = {self.current_direction}')
                 self.update_current_state(self.current_coordinates, self.current_direction)
-
+        self.cnt += 1
 
 def main():
     rclpy.init()

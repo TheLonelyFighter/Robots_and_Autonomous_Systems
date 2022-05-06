@@ -20,7 +20,7 @@ class Env:
         return: corners, goal and end points
         """
         cv2_img = imgmsg_to_cv2(image)
-        scale_percent = 60 #percent of original image
+        scale_percent = 100 #percent of original image
         width = int(cv2_img.shape[1] * scale_percent / 100)
         height = int(cv2_img.shape[0] * scale_percent / 100)
         dim = (width, height)
