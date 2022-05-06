@@ -35,6 +35,10 @@ class AStar:
         A_star Searching.
         :return: path, visited order
         """
+        #In our case, the obstacle list is turned into a list of lists.
+        #In this algorithm however, the obstacle list has to be a list of tuples.
+        #Therefore, we change all coordinates in our obstacle list to tuples :) 
+        self.obs = [tuple(coordinate) for coordinate in self.obs]
 
         self.PARENT[self.s_start] = self.s_start
         self.g[self.s_start] = 0
@@ -138,6 +142,7 @@ class AStar:
 
             if s == self.s_start:
                 break
+        
 
         return list(path)
 

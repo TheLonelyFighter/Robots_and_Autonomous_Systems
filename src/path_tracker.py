@@ -89,10 +89,12 @@ class PathTracker(Node):
         Use A* algorithm for path planning. Get coordinate list for path tracking
         """
         self.astar.obs, self.goal_points, self.start_points, dim = self.astar.Env.obs_map(msg)
+        # print(f'goal_points: {self.goal_points}\n.')
+        # print(f'start_points: {self.start_points}\n.')
         self.astar.s_start = (self.start_points[0][0], self.start_points[0][1])
-        # self.astar.s_goal = (self.goal_points[0][0], self.goal_points[0][1])
-        self.astar.s_start = (0,0)
-        self.astar.s_goal = (10,10)              
+        self.astar.s_goal = (self.goal_points[0][0], self.goal_points[0][1])
+        # self.astar.s_start = (0,0)
+        # self.astar.s_goal = (10,10)              
         print("goal: ", self.astar.s_goal)
         print("start: ", self.astar.s_start)
 

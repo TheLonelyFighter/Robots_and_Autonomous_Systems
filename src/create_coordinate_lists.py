@@ -40,23 +40,16 @@ def get_coordinates(frame):
     corner_marker = {}
     # loop through detected obstacles
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
-        # TODO adapt the coordinates to the location of the drone
         size = aruco_size[i]  # size of the aruco markers in the frame
-        buffer = 15
+        buffer = 0
+        all_coordinates = []
 
         top_left_buffer = top_left + [-buffer, -buffer]
         top_right_buffer = top_right + [buffer, -buffer]
         bottom_left_buffer = bottom_left + [-buffer, buffer]
         bottom_right_buffer = bottom_right + [buffer, buffer]
 
-        # print(f'top_left: {map_range(top_left, corner_marker)}.')
         center_rectangle = (int((top_left[0]+bottom_right[0])/2), int((top_left[1]+bottom_right[1])/2))
-        print(f'center_rectangle: {center_rectangle}.')
-
-        # left_side = get_coordinates_line(top_left_buffer, bottom_left_buffer, shape, vertical=True)
-        # right_side = get_coordinates_line(top_right_buffer, bottom_right_buffer, shape, vertical=True)
-        # top_side = get_coordinates_line(top_left_buffer, top_right_buffer, shape, vertical=False)
-        # bottom_side = get_coordinates_line(bottom_left_buffer, bottom_right_buffer, shape, vertical=False)
 
         left_side = list(bresenham(top_left_buffer[0], top_left_buffer[1], bottom_left_buffer[0], bottom_left_buffer[1]))
         right_side = list(bresenham(top_right_buffer[0], top_right_buffer[1], bottom_right_buffer[0], bottom_right_buffer[1]))
@@ -72,18 +65,17 @@ def get_coordinates(frame):
             starting_coordinates.extend(all_coordinates)
         elif ids[i] in [101, 102, 103, 104]:  # corner marker
             corner_marker[ids[i]] = center_rectangle
-        else:  # obstacle
+        elif ids[i] == 3:  # obstacle
             obstacle_coordinates.extend(all_coordinates)
-        
+        else:
+            print("Rejected markers found: ", i)
 
-    obstacle_opti = np.unique([map_range(obstacle, corner_marker) for obstacle in obstacle_coordinates], axis=0)
+    obstacle_opti = np.unique([map_range(obstacle, corner_marker) for obstacle in obstacle_coordinates], axis=0).tolist()
     start_opti = np.unique([map_range(start, corner_marker) for start in starting_coordinates], axis=0)
     goal_opti = np.unique([map_range(goal, corner_marker) for goal in goal_coordinates], axis=0)
     
     plot_ranges = map_range((shape[1],shape[0]), corner_marker)
-    print(f'plot_ranges: {plot_ranges}')
-
-    
+    # #print(f'plot_ranges: {plot_ranges}')
 
     return obstacle_opti, goal_opti, start_opti, plot_ranges
 

@@ -48,6 +48,7 @@ def detect_aruco_code(frame):
         corners = [top_left, top_right, bottom_right, bottom_left]
         all_corners.append(corners)
 
+        #cv2.aruco.drawDetectedMarkers(frame, rejected)
 
         _, size = calculate_angle(top_left, bottom_left)
         # cv2.putText(frame, str(np.round(size).astype(int)), (bottom_left[0], bottom_left[1] - 15),
