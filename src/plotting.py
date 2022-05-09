@@ -11,25 +11,25 @@ import env
 
 
 class Plotting:
-    def __init__(self, xI, xG, obs, goal_points, start_points, img_dim):
+    def __init__(self, xI, xG, obs, goal_point, start_points, img_dim):
         self.xI, self.xG = xI, xG
         self.env = env.Env()
         self.x_range = img_dim[0]
         self.y_range = img_dim[1]
-        self.obs, self.goal_points, self.start_points = obs, goal_points, start_points
+        self.obs, self.goal_point, self.start_points = obs, goal_point, start_points
 
     def animation(self, path, visited, name):
         self.plot_grid(name)
         #self.plot_visited(visited)
         self.plot_path(path)
-        plt.show()
+        plt.savefig('../images/Path.png')
 
     def plot_grid(self, name):
         obs_x = [x[0] for x in self.obs]
         obs_y = [x[1] for x in self.obs]
 
-        goal_x = [x[0] for x in self.goal_points]
-        goal_y = [x[1] for x in self.goal_points]
+        goal_x = self.goal_point[0]
+        goal_y = self.goal_point[1]
 
         start_x = [x[0] for x in self.start_points]
         start_y = [x[1] for x in self.start_points]

@@ -14,7 +14,7 @@ class CamPublisher(Node):
 
     def __init__(self):
         super().__init__('image_pub')
-        self.image_pub = self.create_publisher(Image, 'obstacle_map', 10)
+        self.image_pub = self.create_publisher(Image, '/tello_map_image', 10)
 
         self.cnt = 0
         self.read_image()

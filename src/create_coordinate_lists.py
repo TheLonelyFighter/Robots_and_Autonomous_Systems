@@ -16,11 +16,9 @@ def get_coordinates_line(start_point, end_point, limits, vertical=True):
     y_max = limits[0]
     if vertical:
         line = np.arange(np.clip(start_point[1], 0, y_max), np.clip(end_point[1], 0, y_max))
-        #line = np.clip((np.arange(start_point[1], end_point[1])), 0, y_max)
         coordinate_list = [(np.clip(start_point[0], 0, x_max), y) for y in line]
     else:  # horizontal line
         line = np.arange(np.clip(start_point[0], 0, x_max), np.clip(end_point[0], 0, x_max))
-        #line = np.clip((np.arange(start_point[0], end_point[0])), 0, x_max)
         coordinate_list = [(x, np.clip(start_point[1], 0, y_max)) for x in line]
     return coordinate_list
 
@@ -35,13 +33,10 @@ def get_coordinates(frame):
     print(f'shape: {shape}.')
 
     obstacle_coordinates = []
-    goal_coordinates = []
-    starting_coordinates = []
     corner_marker = {}
     # loop through detected obstacles
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
-        size = aruco_size[i]  # size of the aruco markers in the frame
-        buffer = 100
+        buffer = 75
         all_coordinates = []
 
         top_left_buffer = top_left + [-buffer, -buffer]
@@ -60,9 +55,7 @@ def get_coordinates(frame):
         all_coordinates = left_side + right_side + top_side + bottom_side
 
         if ids[i] == 0:  # goal
-            goal_coordinates = [center_rectangle]
-        elif ids[i] == 2:  # starting point jetbot
-            starting_coordinates.extend(all_coordinates)
+            goal_coordinates = center_rectangle
         elif ids[i] in [101, 102, 103, 104]:  # corner marker
             corner_marker[ids[i]] = center_rectangle
         elif ids[i] == 3:  # obstacle
@@ -70,14 +63,13 @@ def get_coordinates(frame):
         else:
             print("Rejected markers found: ", i)
 
-    obstacle_opti = np.unique([map_range(obstacle, corner_marker) for obstacle in obstacle_coordinates], axis=0).tolist()
-    #start_opti = np.unique([map_range(start, corner_marker) for start in starting_coordinates], axis=0)
-    goal_opti = np.unique([map_range(goal, corner_marker) for goal in goal_coordinates], axis=0)
-    
-    plot_ranges = map_range((shape[1],shape[0]), corner_marker)
-    print(f'plot_ranges: {plot_ranges}')
+    if(len(obstacle_coordinates) == 0):
+        obstacle_opti = []
+    else:
+        obstacle_opti = np.unique([map_range(obstacle, corner_marker) for obstacle in obstacle_coordinates], axis=0).tolist()
+    goal_opti = map_range(goal_coordinates, corner_marker)
 
-    return obstacle_opti, goal_opti, [], plot_ranges
+    return obstacle_opti, goal_opti
 
 
 def map_range(input_coordinates, corner_marker):
@@ -87,10 +79,10 @@ def map_range(input_coordinates, corner_marker):
     """
 
     # optitrack coordinates of markers
-    marker_101 = [76, 196] #bottom_left
-    marker_102 = [216, 311] #top_right
-    marker_103 = [215, 197] #bottom_right
-    marker_104 = [102, 307] #top_left
+    marker_101 = [167, 194] #bottom_left
+    marker_102 = [306, 294] #top_right
+    # marker_103 = [215, 197] #bottom_right
+    # marker_104 = [102, 307] #top_left
 
     x, y = input_coordinates
 

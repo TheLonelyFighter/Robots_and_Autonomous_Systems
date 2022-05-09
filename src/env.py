@@ -28,6 +28,6 @@ class Env:
 
         resized_img = cv2.resize(cv2_img, dim, interpolation= cv2.INTER_AREA)
 
-        aruco_corners, goal_points, starting_points, dim = get_coordinates(resized_img)
+        aruco_corners, goal = get_coordinates(resized_img)
 
-        return aruco_corners, goal_points, starting_points, dim
+        return aruco_corners, goal
