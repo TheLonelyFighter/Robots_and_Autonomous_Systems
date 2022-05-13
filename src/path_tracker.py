@@ -94,8 +94,6 @@ class PathTracker(Node):
             self.astar.obs, self.goal_point = self.astar.Env.obs_map(msg)
             self.astar.s_start = self.current_coordinates
             self.astar.s_goal = (self.goal_point[0], self.goal_point[1])             
-            # print("goal: ", self.astar.s_goal)
-            # print("start: ", self.astar.s_start)
 
             plot = plotting.Plotting(self.astar.s_start, self.astar.s_goal,
                                     self.astar.obs, self.goal_point, self.start_points, (350,350))
@@ -126,7 +124,7 @@ class PathTracker(Node):
                 turn = difference_current_goal(current_direction, angle)
                 self.move_jetbot(turn)
 
-                if abs(position_difference[0]) < 15 and abs(position_difference[1]) < 15:  # if it is close enough, take the next way point
+                if abs(position_difference[0]) < 20 and abs(position_difference[1]) < 20:  # if it is close enough, take the next way point
                     self.pos_cnt += 1
 
     def optitrack_sub_callback(self, msg):
@@ -134,7 +132,7 @@ class PathTracker(Node):
 
         if len(self.path_coordinates) == 0:  # path is not calculated yet
             pass
-            print("No path yet")
+            #print("No path yet")
             self.current_coordinates = (int(msg.pose.position.x * 100), int(msg.pose.position.y * 100))
             self.current_direction = euler_from_quaternion(msg.pose.orientation)[-1]
         else:
@@ -147,7 +145,7 @@ class PathTracker(Node):
 def main():
     rclpy.init()
     path_tracker = PathTracker()
-
+    print("Path tracker initialized, waiting for image (path).")
     # Spin until ctrl + c
     rclpy.spin(path_tracker)
 

@@ -1,5 +1,10 @@
 #! /usr/bin/python
+'''
+A simple program that publishes an image from a folder to a specific ROS2 topic.
+Used primarily as a subtitute for another system which publishes an image to the same topic.
 
+Author: Bowen Tan
+'''
 import base64
 import cv2
 import numpy as np

@@ -36,7 +36,7 @@ def get_coordinates(frame):
     corner_marker = {}
     # loop through detected obstacles
     for i, (top_left, top_right, bottom_right, bottom_left) in enumerate(corners):
-        buffer = 75
+        buffer = 50
         all_coordinates = []
 
         top_left_buffer = top_left + [-buffer, -buffer]
@@ -79,8 +79,8 @@ def map_range(input_coordinates, corner_marker):
     """
 
     # optitrack coordinates of markers
-    marker_101 = [167, 194] #bottom_left
-    marker_102 = [306, 294] #top_right
+    marker_101 = [85, 189] #bottom_left
+    marker_102 = [224, 288] #top_right
     # marker_103 = [215, 197] #bottom_right
     # marker_104 = [102, 307] #top_left
 

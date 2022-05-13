@@ -1,6 +1,6 @@
 """
 Env 2D
-@author: huiming zhou
+@original author: huiming zhou
 """
 
 import cv2
