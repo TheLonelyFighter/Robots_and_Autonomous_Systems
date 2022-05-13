@@ -10,7 +10,7 @@ RAS Team project 2022 spring semester
 # Instructions on how to run the code
 
 ## Notes
-We ran this code on two seperate machines, one that ran the Tello code and one that ran Jetbot code and path tracking algorithm. They were both connected to the same network.
+We ran this code on two separate machines, one that ran the Tello code and one that ran Jetbot code and path tracking algorithm. They were both connected to the same network.
 
 ## Pre-requisites
 There are many things that are required before being able to run our code. We assume in these instructions that if they are not described, you know how to find, install and run the following:
