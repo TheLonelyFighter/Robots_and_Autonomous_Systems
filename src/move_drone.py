@@ -25,6 +25,41 @@ from nav_msgs.msg import Odometry
 from recognize_qr_gate import calculate_centre_gate
 from recognize_coloured_gate import calculate_center_full, calculate_center_open
 
+def cv2_to_imgmsg(cv2_img, encoding = "passthrough"):
+    """
+    Converts a OpenCV image to a ROS2 Image message
+    """
+    #Get the dimensions of the Image message
+    img_msg = Image()
+    img_msg.height = cv2_img.shape[0]
+    img_msg.width = cv2_img.shape[1]
+    img_msg.encoding = encoding
+
+    if cv2_img.dtype.byteorder == '>':
+        img_msg.is_bigendian = True
+    img_msg.data = cv2_img.tostring()
+    img_msg.step = len(img_msg.data) // img_msg.height
+    return img_msg
+
+def imgmsg_to_cv2(img_msg):
+    """ Converts a ROS image message to a OpenCV image. """
+    n_channels = len(img_msg.data) // (img_msg.height * img_msg.width)
+    dtype = np.uint8
+
+    img_buf = np.asarray(img_msg.data, dtype=dtype) if isinstance(img_msg.data, list) else img_msg.data
+
+    if n_channels == 1:
+        cv2_img = np.ndarray(shape=(img_msg.height, img_msg.width),
+                        dtype=dtype, buffer=img_buf)
+    else:
+        cv2_img = np.ndarray(shape=(img_msg.height, img_msg.width, n_channels),
+                        dtype=dtype, buffer=img_buf)
+
+    # If the byte order is different between the message and the system.
+    if img_msg.is_bigendian == (sys.byteorder == 'little'):
+        cv2_img = cv2_img.byteswap().newbyteorder()
+
+    return cv2_img
 
 class CamSubscriber(Node):
     def __init__(self):
@@ -52,49 +87,13 @@ class CamSubscriber(Node):
     def image_sub_callback(self, msg):
         """ Callback function when receiving an image. """
         # Convert ROS Image message to OpenCV2
-        cv2_img = self.imgmsg_to_cv2(msg)
+        cv2_img = imgmsg_to_cv2(msg)
         #print("Received image msg")
         self.cnt += 1
         #cv.imwrite('camera_image_tello{}.jpeg'.format(self.cnt), cv2_img)
 
         if self.cnt % 1 == 0:  # define how many frames should be processed
             self.move_control(cv2_img)
-
-    def cv2_to_imgmsg(self, cv2_img, encoding = "passthrough"):
-        """
-        Converts a OpenCV image to a ROS2 Image message
-        """
-        #Get the dimensions of the Image message
-        img_msg = Image()
-        img_msg.height = cv2_img.shape[0]
-        img_msg.width = cv2_img.shape[1]
-        img_msg.encoding = encoding
-
-        if cv2_img.dtype.byteorder == '>':
-            img_msg.is_bigendian = True
-        img_msg.data = cv2_img.tostring()
-        img_msg.step = len(img_msg.data) // img_msg.height
-        return img_msg
-
-    def imgmsg_to_cv2(self, img_msg):
-        """ Converts a ROS image message to a OpenCV image. """
-        n_channels = len(img_msg.data) // (img_msg.height * img_msg.width)
-        dtype = np.uint8
-
-        img_buf = np.asarray(img_msg.data, dtype=dtype) if isinstance(img_msg.data, list) else img_msg.data
-
-        if n_channels == 1:
-            cv2_img = np.ndarray(shape=(img_msg.height, img_msg.width),
-                            dtype=dtype, buffer=img_buf)
-        else:
-            cv2_img = np.ndarray(shape=(img_msg.height, img_msg.width, n_channels),
-                            dtype=dtype, buffer=img_buf)
-
-        # If the byte order is different between the message and the system.
-        if img_msg.is_bigendian == (sys.byteorder == 'little'):
-            cv2_img = cv2_img.byteswap().newbyteorder()
-
-        return cv2_img
 
     def move_control(self,img):
         """
@@ -105,7 +104,7 @@ class CamSubscriber(Node):
 
         center_mask, size_mask  = self.process_image(img)  # detect coloured gate
 
-        img_msg = self.cv2_to_imgmsg(img, "bgr8")
+        img_msg = cv2_to_imgmsg(img, "bgr8")
         self.publisher_processed_img.publish(img_msg)
 
         if size_qr > size_mask:

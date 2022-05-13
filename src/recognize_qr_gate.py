@@ -181,16 +181,24 @@ def calculate_centre_gate(frame):
 if __name__ == '__main__':
     print(__doc__)
 
-    image = cv2.imread('../images/new_markers/qr_codes/frame0032.jpg')
-    centre_coordinates, size = calculate_centre_gate(image)
+    image = cv2.imread('../images/obstacle_course/test1.jpg')
+
+    scale_percent = 50 #percent of original image
+    width = int(image.shape[1] * scale_percent / 100)
+    height = int(image.shape[0] * scale_percent / 100)
+    dim = (width, height)
+
+    resized_img = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
+
+    centre_coordinates, size = calculate_centre_gate(resized_img)
 
     if size:  # if markers were detected
         # draw the circle and the middle point
-        cv2.circle(image, centre_coordinates, size, color=(255, 0, 0), thickness=2)
-        cv2.circle(image, centre_coordinates, 4, color=(0, 0, 255), thickness=-1)
+        #cv2.circle(image, centre_coordinates, size, color=(255, 0, 0), thickness=2)
+        #cv2.circle(image, centre_coordinates, 4, color=(0, 0, 255), thickness=-1)
 
-        cv2.imwrite('../images/detected/detected3.jpg', image)
+        #cv2.imwrite('../images/detected/detected3.jpg', image)
         # Display the resulting frame
-        cv2.imshow('frame', image)
+        cv2.imshow('frame', resized_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
