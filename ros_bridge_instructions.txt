@@ -1,0 +1,22 @@
+Make sure the Windows computer is connected to HARAI wifi network, check its IP adress!! (make it static at some point in the future :)
+
+Terminal 1:
+ -> Source noetic
+ -> source ~/catkin_ws/devel/setup.bash
+ -> roscore
+
+ Terminal 2:
+ -> Source noetic
+ -> source ~/catkin_ws/devel/setup.bash
+ -> roslaunch optidome optidome.launch server:=192.168.50.102  #or other IP
+
+Terminal 3:
+ -> source noetic
+ -> export ROS_MASTER_URI=http://localhost:11311
+ -> rosparam load ~/catkin_ws/bridge.yml
+ -> source foxy
+ -> ros2 run ros1_bridge parameter_bridge
+
+ Terminal 4:
+  -> source foxy
+  -> ros2 topic list
