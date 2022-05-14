@@ -35,7 +35,7 @@ Run that code.
 Run [path_tracker.py](src/path_tracker.py)
 
 ## Step 4
-Place the drone in the middle of the obstacle course and run the Tello Driver and launch tello_mapping.py (link here)
+Place the drone in the middle of the obstacle course and run the Tello Driver and launch [tello_mapping.py](src/tello_mapping.py)
 
 ## Step 5
 If everything ran accordingly, you should see the drone fly up to about 2m, hover, take a picture and publishing it to /tello_map_image.
