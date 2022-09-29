@@ -4,6 +4,8 @@ RAS Team project 2022 spring semester, University of Turku, Finland.
 # Check out these cool videos to see autonomous drones flying our code:
 [![Video Presentation of the Project](https://res.cloudinary.com/marcomontalbano/image/upload/v1664446883/video_to_markdown/images/youtube--BtoOrTzUJbk-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=BtoOrTzUJbk "Video Presentation of the Project")
 
+[![Video Presentation of the Project](https://res.cloudinary.com/marcomontalbano/image/upload/v1664446964/video_to_markdown/images/youtube--N2d6wZUVL24-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/watch?v=N2d6wZUVL24 "Video Presentation of the Project")
+
 
 - Sumit Gore <sumit.n.gore@utu.fi>,
 - Marius Gurgu  <marius-mihail.m.gurgu@utu.fi>,
